@@ -31,6 +31,7 @@ local e3=Effect.CreateEffect(c)
 	e3:SetCode(EVENT_PHASE+PHASE_END)
 	e3:SetRange(LOCATION_FZONE)
 	e3:SetCountLimit(1,{id,1})
+	e3:SetCondition(s.regcon)
 	e3:SetTarget(s.regtg)
 	e3:SetOperation(s.regop)
 	c:RegisterEffect(e3)
@@ -71,6 +72,15 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp)
 	if #g>0 then
 		Duel.SpecialSummon(g,0,tp,tp,true,false,POS_FACEUP)
 	end
+end
+function s.confilter(c)
+	return c:IsFaceup() and c:IsSetCard(0x238C)
+end
+function s.regcon(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
+		and Duel.IsExistingMatchingCard(s.confilter,tp,LOCATION_MZONE,0,1,nil)
 end
 function s.rgfilter(c)
 	return c:IsSetCard(0x238C) and c:IsMonster() and c:IsAbleToHand()
