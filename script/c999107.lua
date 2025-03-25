@@ -1,5 +1,5 @@
 --Curse-Ridden Wasteland of Necroidia
---Scripted by Beanbag
+--Scripted by Beanbag bussy
 
 local s,id=GetID()
 function s.initial_effect(c)
