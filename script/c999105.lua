@@ -126,7 +126,7 @@ function s.regop(e,tp,eg,ep,ev,re,r,rp)
 end
 
 function s.thcostfilter(c)
-	return c:IsSetCard(0x238C) and c:IsAbleToGraveAsCost() and not c:IsCode(id)
+	return c:IsSetCard(0x238C) and c:IsMonster() and c:IsAbleToGraveAsCost() and not c:IsCode(id)
 end
 function s.thcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(s.thcostfilter,tp,LOCATION_DECK,0,2,nil) end
