@@ -38,7 +38,7 @@ function s.activate(e,tp,eg,ep,ev,re,r,rp)
 	if #g>=2 then
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
 		local sg=g:Select(tp,2,2,nil)
-		Duel.SpecialSummon(sg,0,tp,tp,false,false,POS_FACEUP)
+		Duel.SpecialSummon(sg,0,tp,tp,true,false,POS_FACEUP)
 	end
 end
 
