@@ -17,7 +17,7 @@ function s.tgfilter(c)
 	return c:IsSetCard(0x238C) and c:IsMonster() and c:IsAbleToGrave()
 end
 function s.filter(c,e,tp)
-	return c:IsSetCard(0x238C) and c:IsCanBeSpecialSummoned(e,0,tp,true,false)
+	return c:IsLevel(8) and c:IsSetCard(0x238C) and c:IsMonster() and c:IsCanBeSpecialSummoned(e,0,tp,true,false)
 end
 function s.cost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(s.tgfilter,tp,LOCATION_DECK,0,2,nil) end
