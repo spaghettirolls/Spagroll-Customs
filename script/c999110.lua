@@ -27,12 +27,10 @@ function s.initial_effect(c)
 	e2:SetOperation(s.setop)
 	c:RegisterEffect(e2)
 end
-function s.rfilter(c,tp)
-	return c:IsSetCard(0x238C) and (c:IsControler(tp) or c:IsFaceup())
-end
+
 function s.setcost(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.CheckReleaseGroupCost(tp,s.rfilter,2,false,aux.ReleaseCheckMMZ,nil,tp) end
-	local g=Duel.SelectReleaseGroupCost(tp,s.rfilter,2,2,false,aux.ReleaseCheckMMZ,nil,tp)
+	if chk==0 then return Duel.CheckReleaseGroupCost(tp,Card.IsSetCard,2,false,aux.ReleaseCheckMMZ,nil,0x238C) end
+	local g=Duel.SelectReleaseGroupCost(tp,Card.IsSetCard,2,2,false,aux.ReleaseCheckMMZ,nil,0x238C)
 	Duel.Release(g,REASON_COST)
 end
 function s.setfilter(c)
@@ -40,12 +38,12 @@ function s.setfilter(c)
 end
 function s.target(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_SZONE)>=2
-		and Duel.IsExistingMatchingCard(s.setfilter,tp,LOCATION_DECK+LOCATION_GRAVE,0,2,nil) end
+		and Duel.IsExistingMatchingCard(s.setfilter,tp,LOCATION_DECK,0,2,nil) end
 end
 function s.activate(e,tp,eg,ep,ev,re,r,rp)
 	if Duel.GetLocationCount(tp,LOCATION_SZONE)<2 then return end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SET)
-	local g=Duel.SelectMatchingCard(tp,s.setfilter,tp,LOCATION_DECK+LOCATION_GRAVE,0,2,2,nil)
+	local g=Duel.SelectMatchingCard(tp,s.setfilter,tp,LOCATION_DECK,0,2,2,nil)
 	if #g>0 then
 		Duel.SSet(tp,g)
 	end
