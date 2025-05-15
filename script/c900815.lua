@@ -61,7 +61,7 @@ function s.discon(e,tp,eg,ep,ev,re,r,rp)
     if rp==tp then return false end
     local p,loc,seq=Duel.GetChainInfo(ev,CHAININFO_TRIGGERING_CONTROLER,CHAININFO_TRIGGERING_LOCATION,CHAININFO_TRIGGERING_SEQUENCE)
     local ec=re:GetHandler()
-    return loc==LOCATION_GRAVE or ec:IsLocation(LOCATION_GRAVE)
+    return loc==LOCATION_GRAVE or ec:IsLocation(LOCATION_GRAVE) or loc==LOCATION_HAND or ec:IsLocation(LOCATION_HAND)
 end
 function s.disop(e,tp,eg,ep,ev,re,r,rp)
     if Duel.GetFlagEffect(tp,id)>0 then return end
