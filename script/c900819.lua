@@ -83,26 +83,15 @@ function s.activate(e,tp,eg,ep,ev,re,r,rp)
 		e2:SetOperation(s.eqop)
 		c:RegisterEffect(e2)
 	    Duel.SpecialSummonComplete()
-		if Duel.SelectYesNo(tp,aux.Stringid(id,0)) then
-		local g=Duel.SelectMatchingCard(tp,s.negfilter,tp,0,LOCATION_ONFIELD,1,1,nil)
-		if g:GetCount()>0 then
-		Duel.HintSelection(g)
-		local tc=g:GetFirst()
-		Duel.NegateRelatedChain(tc,RESET_TURN_SET)
-		local e1=Effect.CreateEffect(c)
-		e1:SetType(EFFECT_TYPE_SINGLE)
-		e1:SetCode(EFFECT_DISABLE)
-		e1:SetReset(RESET_EVENT+0x1fe0000)
-		tc:RegisterEffect(e1)
-		local e2=Effect.CreateEffect(c)
-		e2:SetType(EFFECT_TYPE_SINGLE)
-		e2:SetCode(EFFECT_DISABLE_EFFECT)
-		e2:SetReset(RESET_EVENT+0x1fe0000)
-		tc:RegisterEffect(e2)
-		end
+		local ng=Duel.GetMatchingGroup(Card.IsNegatableMonster,tp,0,LOCATION_MZONE,nil)
+	if #ng==0 or not Duel.SelectYesNo(tp,aux.Stringid(id,0)) then return end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_NEGATE)
+	local sc=ng:Select(tp,1,1,nil):GetFirst()
+	if sc then
+		Duel.HintSelection(sc)
+		sc:NegateEffects(e:GetHandler())
 	end
 end
-
 function s.negfilter(c,e)
 	return c:IsMonster() and not c:IsDisabled()
 end
