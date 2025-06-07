@@ -18,8 +18,8 @@ function s.initial_effect(c)
 	e2:SetRange(LOCATION_HAND)
 	e2:SetCountLimit(1,id)
 	e2:SetCost(Cost.SelfDiscard)
-	e2:SetTarget(s.thtg)
-	e2:SetOperation(s.thop)
+	e2:SetTarget(s.target)
+	e2:SetOperation(s.activate)
 	c:RegisterEffect(e2)
 end
 s.listed_names={15259703,id}
