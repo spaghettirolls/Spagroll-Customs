@@ -29,8 +29,36 @@ function s.initial_effect(c)
 	e3:SetTarget(s.lvtg)
 	e3:SetOperation(s.lvop)
 	c:RegisterEffect(e3)
+	local e4=Effect.CreateEffect(c)
+	e4:SetCategory(CATEGORY_SPECIAL_SUMMON)
+	e4:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
+	e4:SetCode(EVENT_RELEASE)
+	e4:SetProperty(EFFECT_FLAG_DAMAGE_STEP+EFFECT_FLAG_DELAY)
+	e4:SetCountLimit(1,{id,2})
+	e4:SetTarget(s.sstarget)
+	e4:SetOperation(s.ssoperation)
+	c:RegisterEffect(e4)
 end
 s.listed_names={15259703,id}
+function s.sstarget(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
+		and e:GetHandler():IsCanBeSpecialSummoned(e,0,tp,false,false) end
+	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,e:GetHandler(),1,0,0)
+end
+function s.ssoperation(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	if c:IsRelateToEffect(e) and Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)>0 then
+		--Banish it if it leaves the field
+		local e1=Effect.CreateEffect(c)
+		e1:SetDescription(3300)
+		e1:SetType(EFFECT_TYPE_SINGLE)
+		e1:SetCode(EFFECT_LEAVE_FIELD_REDIRECT)
+		e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_CLIENT_HINT)
+		e1:SetReset(RESET_EVENT|RESETS_REDIRECT)
+		e1:SetValue(LOCATION_REMOVED)
+		c:RegisterEffect(e1,true)
+	end
+end
 function s.lvfilter(c)
 	return c:IsFaceup() and c:IsSetCard(SET_TOON) and c:GetLevel()>0
 end
