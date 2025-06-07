@@ -24,7 +24,7 @@ function s.initial_effect(c)
 end
 s.listed_names={15259703,id}
 function s.filter(c)
-	return (c:ListsCode(15259703) or c:IsCode(15259703)) and not c:IsCode(id) and c:IsSpellTrap() and c:IsAbleToHand() 
+	return (c:ListsCode(15259703) or c:IsCode(15259703)) and c:IsSpellTrap() and c:IsAbleToHand() 
 end
 function s.target(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(s.filter,tp,LOCATION_DECK,0,1,nil) end
