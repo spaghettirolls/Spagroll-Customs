@@ -23,24 +23,25 @@ function s.initial_effect(c)
 	c:RegisterEffect(e2)
 	local e3=Effect.CreateEffect(c)
 	e3:SetDescription(aux.Stringid(id,1))
-	e3:SetProperty(EFFECT_FLAG_CARD_TARGET)
 	e3:SetType(EFFECT_TYPE_IGNITION)
 	e3:SetRange(LOCATION_MZONE)
-	e3:SetTarget(s.tg)
-	e3:SetOperation(s.op)
+	e2:SetCountLimit(1,{id,1})
+	e3:SetTarget(s.lvtg)
+	e3:SetOperation(s.lvop)
 	c:RegisterEffect(e3)
 end
-function s.filter(c)
+s.listed_names={15259703,id}
+function s.lvfilter(c)
 	return c:IsFaceup() and c:IsSetCard(SET_TOON) and c:GetLevel()>0
 end
-function s.tg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
+function s.lvtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	local c=e:GetHandler()
-	if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsControler(tp) and s.filter(chkc) and chkc~=c end
-	if chk==0 then return Duel.IsExistingTarget(s.filter,tp,LOCATION_MZONE,0,1,c) end
+	if chkc then return chkc:IsLocation(LOCATION_MZONE) and chkc:IsControler(tp) and s.lvfilter(chkc) and chkc~=c end
+	if chk==0 then return Duel.IsExistingTarget(s.lvfilter,tp,LOCATION_MZONE,0,1,c) end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_FACEUP)
-	Duel.SelectTarget(tp,s.filter,tp,LOCATION_MZONE,0,1,1,c)
+	Duel.SelectTarget(tp,s.lvfilter,tp,LOCATION_MZONE,0,1,1,c)
 end
-function s.op(e,tp,eg,ep,ev,re,r,rp)
+function s.lvop(e,tp,eg,ep,ev,re,r,rp)
 	local tc=Duel.GetFirstTarget()
 	if tc and tc:IsFaceup() and tc:IsRelateToEffect(e) then
 		Duel.Hint(HINT_SELECTMSG,tp,aux.Stringid(id,0))
@@ -53,7 +54,6 @@ function s.op(e,tp,eg,ep,ev,re,r,rp)
 		tc:RegisterEffect(e1)
 	end
 end
-s.listed_names={15259703,id}
 function s.filter(c)
 	return (c:ListsCode(15259703) or c:IsCode(15259703)) and c:IsSpellTrap() and c:IsAbleToHand() 
 end
