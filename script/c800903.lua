@@ -19,11 +19,13 @@ function s.initial_effect(c)
 	c:RegisterEffect(e1)
 	local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,0))
+	e2:SetCategory(CATEGORY_SPECIAL_SUMMON)
 	e2:SetType(EFFECT_TYPE_QUICK_O)
 	e2:SetCode(EVENT_CHAINING)
 	e2:SetRange(LOCATION_MZONE)
-	e2:SetCondition(function(e,tp,eg,ep,ev,re,r,rp) return rp==1-tp end)
-	e2:SetCost(s.spcost)
+	e2:SetCountLimit(1)
+	e2:SetCondition(s.spcon)
+    e2:SetCost(s.spcost)
 	e2:SetTarget(s.sptg)
 	e2:SetOperation(s.spop)
 	c:RegisterEffect(e2)
@@ -55,7 +57,9 @@ function s.spcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return c:IsAbleToExtraAsCost() end
 	Duel.SendtoDeck(c,nil,SEQ_DECKTOP,REASON_COST)
 end
-
+function s.spcon(e,tp,eg,ep,ev,re,r,rp)
+	return rp~=tp
+end
 function s.spfilter(c,e,tp,code)
 	return c:IsCode(code) and c:IsCanBeSpecialSummoned(e,0,tp,true,false)
 end
