@@ -17,15 +17,15 @@ function s.initial_effect(c)
 	e1:SetTarget(s.destg)
 	e1:SetOperation(s.desop)
 	c:RegisterEffect(e1)
-	local e2=Effect.CreateEffect(c)
-	e2:SetDescription(aux.Stringid(id,0))
+    local e2=Effect.CreateEffect(c)
+	e2:SetDescription(aux.Stringid(id,1))
 	e2:SetCategory(CATEGORY_SPECIAL_SUMMON)
 	e2:SetType(EFFECT_TYPE_QUICK_O)
 	e2:SetCode(EVENT_CHAINING)
 	e2:SetRange(LOCATION_MZONE)
-	e2:SetCountLimit(1)
-	e2:SetCondition(s.spcon)
-    e2:SetCost(s.spcost)
+	e2:SetCountLimit(1,{id,1})
+	e2:SetCondition(function(e,tp,eg,ep,ev,re,r,rp) return rp==1-tp end)
+	e2:SetCost(Cost.SelfToExtra)
 	e2:SetTarget(s.sptg)
 	e2:SetOperation(s.spop)
 	c:RegisterEffect(e2)
@@ -51,37 +51,25 @@ function s.desop(e)
 	local dg=g:Filter(Card.IsRelateToEffect,nil,e)
 	Duel.Destroy(dg,REASON_EFFECT)
 end
-
-function s.spcost(e,tp,eg,ep,ev,re,r,rp,chk)
-	local c=e:GetHandler()
-	if chk==0 then return c:IsAbleToExtraAsCost() end
-	Duel.SendtoDeck(c,nil,SEQ_DECKTOP,REASON_COST)
+function s.spfilter(c,e,tp)
+	return c:IsCode(21296502,53183600) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
-function s.spcon(e,tp,eg,ep,ev,re,r,rp)
-	return rp~=tp
-end
-function s.spfilter(c,e,tp,code)
-	return c:IsCode(code) and c:IsCanBeSpecialSummoned(e,0,tp,true,false)
+function s.rescon(sg,e,tp,mg)
+	return sg:FilterCount(Card.IsCode,nil,21296502)==1
 end
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>1
-		and not Duel.IsPlayerAffectedByEffect(tp,CARD_BLUEEYES_SPIRIT)
-		and Duel.IsExistingMatchingCard(s.spfilter,tp,LOCATION_HAND|LOCATION_DECK|LOCATION_GRAVE,0,1,nil,e,tp,21296502)
-		and Duel.IsExistingMatchingCard(s.spfilter,tp,LOCATION_HAND|LOCATION_DECK|LOCATION_GRAVE,0,1,nil,e,tp,53183600) end
-	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,2,tp,LOCATION_HAND|LOCATION_DECK|LOCATION_GRAVE)
-end
-function s.rescon(sg)
-	return sg:IsExists(Card.IsCode,1,nil,21296502) and sg:IsExists(Card.IsCode,1,nil,53183600)
+	local g=Duel.GetMatchingGroup(s.spfilter,tp,LOCATION_HAND_DECK_GRAVE_EXTRA,0,nil,e,tp)
+	if chk==0 then return not Duel.IsPlayerAffectedByEffect(tp,CARD_BLUEEYES_SPIRIT) and Duel.GetLocationCount(tp,LOCATION_MZONE)>1
+		and aux.SelectUnselectGroup(g,e,tp,2,2,s.rescon,0) end
+	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,2,tp,LOCATION_HAND_DECK_GRAVE_EXTRA)
 end
 function s.spop(e,tp,eg,ep,ev,re,r,rp)
 	if Duel.IsPlayerAffectedByEffect(tp,CARD_BLUEEYES_SPIRIT)
 		or Duel.GetLocationCount(tp,LOCATION_MZONE)<2 then return end
-	local g1=Duel.GetMatchingGroup(aux.NecroValleyFilter(s.spfilter),tp,LOCATION_HAND|LOCATION_DECK|LOCATION_GRAVE,0,nil,e,tp,21296502)
-	local g2=Duel.GetMatchingGroup(aux.NecroValleyFilter(s.spfilter),tp,LOCATION_HAND|LOCATION_DECK|LOCATION_GRAVE,0,nil,e,tp,53183600)
-	if #g1>0 and #g2>0 then
-		local sg=aux.SelectUnselectGroup(g1+g2,e,tp,2,2,s.rescon,1,tp,HINTMSG_SPSUMMON)
-		if #sg>0 then
-			Duel.SpecialSummon(sg,0,tp,tp,true,false,POS_FACEUP)
-		end
+	local g=Duel.GetMatchingGroup(aux.NecroValleyFilter(s.spfilter),tp,LOCATION_HAND_DECK_GRAVE_EXTRA,0,nil,e,tp)
+	if #g==0 then return end
+	local sg=aux.SelectUnselectGroup(g,e,tp,2,2,s.rescon,1,tp,HINTMSG_SPSUMMON)
+	if #sg>0 then
+		Duel.SpecialSummon(sg,0,tp,tp,false,false,POS_FACEUP)
 	end
 end
