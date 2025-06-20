@@ -34,7 +34,7 @@ function s.initial_effect(c)
 	c:RegisterEffect(e5)
 end
 s.listed_series={SET_TOON}
-
+s.listed_names={15259703,id}
 function s.spfilter(c,e,tp)
 	return c:IsType(TYPE_TOON) and c:IsCanBeSpecialSummoned(e,0,tp,true,false)
 end
