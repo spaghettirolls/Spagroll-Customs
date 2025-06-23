@@ -27,7 +27,7 @@ function s.initial_effect(c)
 	e2:SetCost(s.negcost)
 	e2:SetTarget(s.negtg)
 	e2:SetOperation(s.negop)
-	c:RegisterEffect(e3)
+	c:RegisterEffect(e2)
 end
 function s.tfilter(c,lc,stype,tp)
 	return c:IsSummonCode(lc,stype,tp,800900) or c:IsHasEffect(20932152)
