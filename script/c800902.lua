@@ -21,11 +21,13 @@ function s.initial_effect(c)
 	e3:SetDescription(aux.Stringid(id,0))
 	e3:SetType(EFFECT_TYPE_IGNITION)
 	e3:SetRange(LOCATION_SZONE)
+	e3:SetCountLimit(1,{id,1})
 	c:RegisterEffect(e3)
     local e4=Ritual.CreateProc(c,RITPROC_GREATER,aux.FilterBoolFunction(Card.IsSetCard,SET_TOON),nil,aux.Stringid(id,1))
     e4:SetDescription(aux.Stringid(id,1))
 	e4:SetType(EFFECT_TYPE_IGNITION)
 	e4:SetRange(LOCATION_SZONE)
+	e4:SetCountLimit(1,{id,2})
 	c:RegisterEffect(e4)
 end
 s.listed_names={15259703,id}
