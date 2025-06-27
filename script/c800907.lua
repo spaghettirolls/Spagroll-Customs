@@ -6,26 +6,25 @@ function s.initial_effect(c)
 	e1:SetDescription(aux.Stringid(id,0))
 	e1:SetCategory(CATEGORY_TOHAND)
 	e1:SetType(EFFECT_TYPE_ACTIVATE)
+	e1:SetProperty(EFFECT_FLAG_CARD_TARGET)
 	e1:SetCode(EVENT_FREE_CHAIN)
-	e1:SetTarget(s.thtg)
-	e1:SetOperation(s.thop)
+	e1:SetTarget(s.target)
+	e1:SetOperation(s.activate)
 	c:RegisterEffect(e1)
 end
-
-function s.thfilter(c,e)
-	return c:IsSetCard(0x98) and c:IsMonster() and c:IsAbleToHand() and c:IsCanBeEffectTarget(e)
+function s.thfilter(c)
+	return c:IsSetCard(SET_TOON) and c:IsMonster() and c:IsAbleToHand()
 end
-function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	if chkc then return chkc:IsControler(tp) and chkc:IsLocation(LOCATION_GRAVE) and s.thfilter(chkc,e) end
-	local g=Duel.GetMatchingGroup(s.thfilter,tp,LOCATION_GRAVE,0,nil,e)
-	if chk==0 then return #g>0 end
-	local tg=aux.SelectUnselectGroup(g,e,tp,1,2,aux.dncheck,1,tp,HINTMSG_ATOHAND)
-	Duel.SetTargetCard(tg)
-	Duel.SetOperationInfo(0,CATEGORY_TOHAND,tg,#tg,tp,0)
+function s.target(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
+	if chkc then return chkc:IsControler(tp) and chkc:IsLocation(LOCATION_GRAVE) and s.thfilter(chkc) end
+	if chk==0 then return Duel.IsExistingTarget(s.thfilter,tp,LOCATION_GRAVE,0,2,nil) end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+	local g=Duel.SelectTarget(tp,s.thfilter,tp,LOCATION_GRAVE,0,2,2,nil)
+	Duel.SetOperationInfo(0,CATEGORY_TOHAND,g,2,tp,0)
 end
-function s.thop(e,tp,eg,ep,ev,re,r,rp)
-	local g=Duel.GetTargetCards(e)
-	if #g>0 then
-		Duel.SendtoHand(g,nil,REASON_EFFECT)
+function s.activate(e,tp,eg,ep,ev,re,r,rp)
+	local tg=Duel.GetTargetCards(e):Filter(Card.IsSetCard,nil,SET_TOON)
+	if #tg>0 then
+		Duel.SendtoHand(tg,nil,REASON_EFFECT)
 	end
 end
