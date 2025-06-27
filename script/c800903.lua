@@ -6,6 +6,16 @@ function s.initial_effect(c)
 	--fusion material
 	c:EnableReviveLimit()
 	Fusion.AddProcMix(c,true,true,53183600,21296502)
+	local e0=Effect.CreateEffect(c)
+	e0:SetDescription(aux.Stringid(id,0))
+	e0:SetType(EFFECT_TYPE_FIELD)
+	e0:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
+	e0:SetCode(EFFECT_SPSUMMON_PROC)
+	e0:SetRange(LOCATION_EXTRA)
+	e0:SetCondition(s.excon)
+	e0:SetTarget(s.extg)
+	e0:SetOperation(s.exop)
+	c:RegisterEffect(e0)
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
 	e1:SetCategory(CATEGORY_DESTROY)
@@ -28,6 +38,32 @@ function s.initial_effect(c)
 	e2:SetTarget(s.sptg)
 	e2:SetOperation(s.spop)
 	c:RegisterEffect(e2)
+end
+
+function s.excheck(sg,e,tp)
+	return Duel.GetLocationCountFromEx(tp,tp,sg,e:GetHandler())>0
+end
+function s.excon(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	local rg=Duel.GetReleaseGroup(tp):Filter(Card.IsSetCard,nil,SET_TOON)
+	return aux.SelectUnselectGroup(rg,e,tp,2,2,s.excheck,0)
+end
+function s.extg(e,tp,eg,ep,ev,re,r,rp,chk,c)
+	local rg=Duel.GetReleaseGroup(tp):Filter(Card.IsSetCard,nil,SET_TOON)
+	local g=aux.SelectUnselectGroup(rg,e,tp,2,2,s.excheck,1,tp,HINTMSG_RELEASE,nil,nil,true)
+	if #g>0 then
+		g:KeepAlive()
+		e:SetLabelObject(g)
+		return true
+	end
+	return false
+end
+function s.exop(e,tp,eg,ep,ev,re,r,rp,c)
+	local g=e:GetLabelObject()
+	if not g then return end
+	Duel.Release(g,REASON_COST)
+	g:DeleteGroup()
 end
 
 function s.condition(e,tp,eg,ep,ev,re,r,rp)
