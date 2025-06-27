@@ -8,10 +8,33 @@ function s.initial_effect(c)
 	e1:SetType(EFFECT_TYPE_ACTIVATE)
 	e1:SetProperty(EFFECT_FLAG_CARD_TARGET)
 	e1:SetCode(EVENT_FREE_CHAIN)
+	e1:SetCountLimit(1,id)
 	e1:SetTarget(s.target)
 	e1:SetOperation(s.activate)
 	c:RegisterEffect(e1)
+    local params = {fusfilter=aux.FilterBoolFunction(Card.IsSetCard,SET_TOON),matfilter=Fusion.OnFieldMat(Card.IsAbleToRemove),
+	extrafil=s.fextra,extraop=Fusion.BanishMaterial,extratg=s.extratarget}
+	local e2=Effect.CreateEffect(c)
+	e2:SetCategory(CATEGORY_SPECIAL_SUMMON+CATEGORY_FUSION_SUMMON)
+	e2:SetType(EFFECT_TYPE_IGNITION)
+	e2:SetRange(LOCATION_GRAVE)
+	e2:SetCountLimit(1,{id,0})
+    e2:SetCost(Cost.SelfBanish)
+	e2:SetTarget(Fusion.SummonEffTG(params))
+	e2:SetOperation(Fusion.SummonEffOP(params))
+	c:RegisterEffect(e2)
 end
+function s.fextra(e,tp,mg)
+	if not Duel.IsPlayerAffectedByEffect(tp,CARD_SPIRIT_ELIMINATION) then
+		return Duel.GetMatchingGroup(Fusion.IsMonsterFilter(Card.IsAbleToRemove),tp,LOCATION_GRAVE,0,nil)
+	end
+	return nil
+end
+function s.extratarget(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return true end
+	Duel.SetOperationInfo(0,CATEGORY_REMOVE,nil,0,tp,|LOCATION_GRAVE)
+end
+
 function s.thfilter(c)
 	return c:IsSetCard(SET_TOON) and c:IsMonster() and c:IsAbleToHand()
 end
