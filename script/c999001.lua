@@ -14,6 +14,7 @@ function s.initial_effect(c)
     e2:SetType(EFFECT_TYPE_IGNITION)
     e2:SetRange(LOCATION_GRAVE)
     e2:SetCountLimit(1,id)
+    e2:SetCondition(s.spcon)
     e2:SetCost(s.spcost)    
     e2:SetTarget(s.rthtg)
     e2:SetOperation(s.rthop)
@@ -27,6 +28,11 @@ s.listed_names={999000}
 function s.counterfilter(c)
     return c:IsSetCard(0x270F)
 end
+
+function s.spcon(e,tp,eg,ep,ev,re,r,rp)
+    return Duel.IsExistingMatchingCard(aux.FaceupFilter(Card.IsCode,999000),tp,LOCATION_ONFIELD,0,1,nil)
+end
+
 function s.spcost(e,tp,eg,ep,ev,re,r,rp,chk)
     local c=e:GetHandler()
     if chk==0 then return Duel.GetCustomActivityCount(id,tp,ACTIVITY_SPSUMMON)==0 end
