@@ -3,6 +3,7 @@
 
 local s,id=GetID()
 function s.initial_effect(c)
+	c:SetUniqueOnField(1,0,id)
 	aux.AddPersistentProcedure(c,0,s.filter)
 	--cannot be destroyed effect
 	local e1=Effect.CreateEffect(c)
