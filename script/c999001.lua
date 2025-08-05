@@ -153,8 +153,70 @@ function s.stage2(mg,e,tp,eg,ep,ev,re,r,rp,sc)
         e1:SetReset(RESET_PHASE+PHASE_END)
         Duel.RegisterEffect(e1,tp)
         Duel.RegisterFlagEffect(tp,id,RESET_PHASE+PHASE_END,0,1)
+        local e2=Effect.CreateEffect(c)
+        e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+        e2:SetCode(EVENT_ADJUST)
+        e2:SetCondition(s.adjcon)
+        e2:SetOperation(s.adjop)
+        e2:SetReset(RESET_PHASE+PHASE_END)
+        Duel.RegisterEffect(e2,tp)
+        -- Init internal state
+        local state={presence={[999000]=true,[999011]=true},triggered=false}
+        e2:SetLabelObject(state)
     end
 end
+
+function s.adjcon(e,tp,eg,ev,ep,re,r,rp)
+    return true
+end
+
+function s.adjop(e,tp,eg,ep,ev,re,r,rp)
+    local c=e:GetHandler()
+    local state=e:GetLabelObject()
+    if not state.prevFaceupCount then state.prevFaceupCount=0 end
+    if state.triggered then return end
+    local g999000=Duel.GetMatchingGroup(aux.FaceupFilter(Card.IsCode,999000),tp,LOCATION_MZONE,0,nil)
+    local g999011=Duel.GetMatchingGroup(aux.FaceupFilter(Card.IsCode,999011),tp,LOCATION_FZONE,0,nil)
+    local faceup999000=g999000
+    local faceup999011=g999011
+    local prevFaceup999000=state.prevFaceupCount
+    local prevHad999011=state.presence[999011]
+    local card1=g999000:GetFirst()
+    local card2=g999011:GetFirst()
+    -- Check if all 999000s left field
+    local leftAll999000=(prevFaceup999000>0 and g999000:GetCount()==0)
+    -- Check if any were flipped facedown
+    local facedown999000=(prevFaceup999000>0 and faceup999000:GetCount()<prevFaceup999000)
+    -- Check for 999011 leaving/flipping
+    local left999011=prevHad999011 and g999011:GetCount()==0
+    local facedown999011=card2 and prevHad999011==true and not card2:IsFaceup()
+    if leftAll999000 or facedown999000 or left999011 or facedown999011 then
+        state.triggered=true
+        local handlim=6
+        local hls={Duel.GetPlayerEffect(tp,EFFECT_HAND_LIMIT)}
+        for _,eff in ipairs(hls) do
+            if eff~=e then
+                local value=eff:GetValue()
+                if type(value)=="function" then value=value(eff,e,tp,c) end
+                if type(value)=="number" then handlim=value end
+            end
+        end
+        local e1=Effect.CreateEffect(c)
+        e1:SetType(EFFECT_TYPE_FIELD)
+        e1:SetCode(EFFECT_HAND_LIMIT)
+        e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+        e1:SetTargetRange(1,0)
+        e1:SetValue(handlim-2)
+        e1:SetReset(RESET_PHASE+PHASE_END)
+        Duel.RegisterEffect(e1,tp)
+    end
+    -- Update state
+    state.prevFaceupCount=faceup999000:GetCount()
+    state.presence[999000]=card1 and card1:IsFaceup() or false
+    state.presence[999011]=card2 and card2:IsFaceup() or false
+end
+
+
 
 
 --Return to hand
