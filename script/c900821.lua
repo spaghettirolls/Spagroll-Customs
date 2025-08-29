@@ -38,54 +38,32 @@ end
 function s.distg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(s.tgfilter,tp,LOCATION_DECK,0,1,nil) end
 	Duel.SetOperationInfo(0,CATEGORY_TOGRAVE,nil,1,tp,LOCATION_DECK)
-	Duel.SetPossibleOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_EXTRA)
 end
 function s.spfilter(c,e,tp)
 	return c:IsType(TYPE_FUSION) and c:IsSetCard(0x3D4) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
 function s.distg(e,tp,eg,ep,ev,re,r,rp,chk)
-    if chk==0 then 
-        return Duel.IsExistingMatchingCard(s.tgfilter,tp,LOCATION_DECK,0,1,nil)
-    end
+    if chk==0 then return Duel.IsExistingMatchingCard(s.tgfilter,tp,LOCATION_DECK,0,1,nil) end
     Duel.SetOperationInfo(0,CATEGORY_TOGRAVE,nil,1,tp,LOCATION_DECK)
-    -- don't declare special summon info here because it's optional
 end
 
 function s.disop(e,tp,eg,ep,ev,re,r,rp)
     Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
-    local g1=Duel.SelectMatchingCard(tp,s.tgfilter,tp,LOCATION_DECK,0,1,1,nil)
-    if #g1>0 and Duel.SendtoGrave(g1,REASON_EFFECT)>0 then
-        -- after sending, check if you want to Fusion Summon
-        if Duel.GetLocationCountFromEx(tp)>0 
-            and Duel.IsExistingMatchingCard(s.spfilter,tp,LOCATION_EXTRA,0,1,nil,e,tp)
-            and Duel.SelectYesNo(tp,aux.Stringid(id,1)) then
-            Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
-            local g2=Duel.SelectMatchingCard(tp,s.spfilter,tp,LOCATION_EXTRA,0,1,1,nil,e,tp)
-            local tc=g2:GetFirst()
-            if tc then
-                Duel.SpecialSummon(tc,SUMMON_TYPE_FUSION,tp,tp,false,false,POS_FACEUP)
-                tc:CompleteProcedure() -- necessary to register it as Fusion Summoned
-            end
-        end
+    local g=Duel.SelectMatchingCard(tp,s.tgfilter,tp,LOCATION_DECK,0,1,1,nil)
+    if #g>0 then
+        Duel.SendtoGrave(g,REASON_EFFECT)
+        Duel.RegisterFlagEffect(tp,id,RESET_PHASE|PHASE_END,0,1)
     end
 end
 
---Check if a "Poltiquette" Continuous Trap is activated
-function s.cfilter(c)
-    return c:IsType(TYPE_TRAP) and c:IsType(TYPE_CONTINUOUS) and c:IsFaceupEx()
-        and c:IsSetCard(0x3D4)
-end
-
 function s.spcon(e,tp,eg,ep,ev,re,r,rp)
-    local rc=re:GetHandler()
-    return re:IsActiveType(TYPE_TRAP) and rc:IsType(TYPE_CONTINUOUS) 
-        and rc:IsSetCard(0x3D4) and rp==tp
+    return rp==tp and re:IsHasType(EFFECT_TYPE_ACTIVATE) and re:IsActiveType(TYPE_TRAP+TYPE_CONTINUOUS) and re:GetHandler():IsSetCard(0x3D4) and e:GetHandler()~=re:GetHandler()
 end
 
 --Targeting
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
     if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
-        and Duel.IsExistingMatchingCard(aux.NecroValleyFilter(Card.IsCanBeSpecialSummoned),tp,LOCATION_GRAVE,0,1,nil,e,0,tp,false,false) end
+        and e:GetHandler():IsCanBeSpecialSummoned(e,0,tp,false,false) end
     Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,e:GetHandler(),1,0,0)
 end
 
