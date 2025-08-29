@@ -74,18 +74,31 @@ end
 function s.extraop(e,tc,tp,sg)
     local rg=sg:Filter(aux.NecroValleyFilter(s.settofieldfilter),nil)
     if Duel.GetLocationCount(tp,LOCATION_SZONE)<=0 or Duel.GetFlagEffect(tp,id)>0 then return end
-    if #rg>0 and Duel.SelectYesNo(tp,aux.Stringid(id,1)) then
+    local ct=1
+    if Duel.GetFlagEffect(tp,900821)>0 and Duel.GetLocationCount(tp,LOCATION_SZONE)>-1 then ct=2 end
+    if #rg>0 and ((ct==1 and Duel.SelectYesNo(tp,aux.Stringid(id,1))) or (ct==2 and Duel.SelectYesNo(tp,aux.Stringid(id,2)))) then
         Duel.RegisterFlagEffect(tp,id,RESET_PHASE+PHASE_END,0,1)
-        local dg=rg:Select(tp,1,1,nil)
-        local tc=dg:GetFirst()
-        Duel.HintSelection(tc)
-        Duel.SSet(tp,tc)
-        Duel.RaiseSingleEvent(tc,EVENT_SSET,e,REASON_EFFECT+REASON_FUSION+REASON_MATERIAL,tp,tp,0)
-        Duel.RaiseEvent(tc,EVENT_SSET,e,REASON_EFFECT+REASON_FUSION+REASON_MATERIAL,tp,tp,0)
-        sg:Sub(tc)
-    end
+        local dg=rg:Select(tp,1,ct,nil)
+        if #dg>1 then
+        for tc in aux.Next(dg) do
+ 			Duel.HintSelection(tc)
+	        Duel.SSet(tp,tc)
+	        Duel.RaiseSingleEvent(tc,EVENT_SSET,e,REASON_EFFECT+REASON_FUSION+REASON_MATERIAL,tp,tp,0)
+	        Duel.RaiseEvent(tc,EVENT_SSET,e,REASON_EFFECT+REASON_FUSION+REASON_MATERIAL,tp,tp,0)
+	        sg:Sub(tc)
+	        end
+	    else
+	        local tc=dg:GetFirst()
+	        Duel.HintSelection(tc)
+	        Duel.SSet(tp,tc)
+	        Duel.RaiseSingleEvent(tc,EVENT_SSET,e,REASON_EFFECT+REASON_FUSION+REASON_MATERIAL,tp,tp,0)
+	        Duel.RaiseEvent(tc,EVENT_SSET,e,REASON_EFFECT+REASON_FUSION+REASON_MATERIAL,tp,tp,0)
+	        sg:Sub(tc)
+	    end
+	end
     if #sg<=0 then return end
     Duel.SendtoDeck(sg,nil,2,REASON_EFFECT+REASON_MATERIAL+REASON_FUSION)
+    e:GetHandler():ResetFlagEffect(900821)
 end
 function s.extratg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return true end
