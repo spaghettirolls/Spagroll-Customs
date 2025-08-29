@@ -63,9 +63,30 @@ function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	Duel.SetOperationInfo(0,CATEGORY_TOHAND,g,1,0,0)
 end
 function s.thop(e,tp,eg,ep,ev,re,r,rp)
-	local tc=Duel.GetFirstTarget()
-	if tc:IsRelateToEffect(e) and Duel.SendtoHand(tc,nil,REASON_EFFECT)>0 then
-	end
+    local tc=Duel.GetFirstTarget()
+    if tc and tc:IsRelateToEffect(e) and Duel.SendtoHand(tc,nil,REASON_EFFECT)>0 and tc:IsLocation(LOCATION_HAND) then
+        Duel.ConfirmCards(1-tp,tc)
+        local code=tc:GetCode()
+        -- Watcher for the first activation of that card
+        local e1=Effect.CreateEffect(e:GetHandler())
+        e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+        e1:SetCode(EVENT_CHAINING)
+        e1:SetCondition(function(e,tp,eg,ep,ev,re,r,rp) return rp==tp and re:GetHandler():IsCode(code) end)
+        e1:SetOperation(function(e,tp,eg,ep,ev,re,r,rp)
+            -- Once you activate it, apply blanket restriction for rest of turn
+            local e2=Effect.CreateEffect(e:GetHandler())
+            e2:SetType(EFFECT_TYPE_FIELD)
+            e2:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+            e2:SetCode(EFFECT_CANNOT_ACTIVATE)
+            e2:SetTargetRange(1,0)
+            e2:SetValue(function(e,re,tp) return re:GetHandler():IsCode(code) end)
+            e2:SetReset(RESET_PHASE+PHASE_END)
+            Duel.RegisterEffect(e2,tp)
+            e:Reset() -- remove watcher effect
+        end)
+        e1:SetReset(RESET_PHASE+PHASE_END)
+        Duel.RegisterEffect(e1,tp)
+    end
 end
 function s.matfilter(c)
 	return c:IsContinuousTrap()
