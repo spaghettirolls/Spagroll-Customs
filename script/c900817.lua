@@ -42,9 +42,10 @@ function s.initial_effect(c)
 	e4:SetCode(EFFECT_EXTRA_FUSION_MATERIAL)
 	e4:SetRange(LOCATION_MZONE)
 	e4:SetTargetRange(LOCATION_OVERLAY+LOCATION_MZONE,LOCATION_OVERLAY+LOCATION_MZONE)
-	e4:SetTarget(function(e,c) return c:IsSetCard(0x3D4) and not c:IsImmuneToEffect(e) end)
+	e4:SetTarget(function(e,c) return c:GetOverlayCount()>0 and c:IsSetCard(0x3D4) and not c:IsImmuneToEffect(e) end)
 	e4:SetValue(s.matval)
 	e4:SetLabelObject({s.extrafil_replacement})
+	--[[e4:SetOperation(s.fusdetach)--]]
 	c:RegisterEffect(e4)
 end
 function s.thcon(e,tp,eg,ep,ev,re,r,rp)
@@ -121,7 +122,7 @@ function s.extrafil_replacement(e,tp,mg)
         end
     end
     -- Return false if overlay group is empty
-    if og:GetCount()==0 then
+    if #og==0 then
         return false
     end
     return og,s.fcheck_replacement
@@ -129,5 +130,16 @@ end
 
 function s.fcheck_replacement(tp,sg,fc)
 	return sg:FilterCount(Card.IsLocation,nil,LOCATION_OVERLAY)<=99
+end
+
+function s.fusdetach(e,tc,tp,sg)
+    --Detach as Fusion Material
+    Duel.SendtoGrave(sg,REASON_EFFECT+REASON_MATERIAL+REASON_FUSION)
+    --Raise each detach event for individually
+    local tc2=nil
+    for tc2 in aux.Next(sg) do
+        Duel.RaiseSingleEvent(tc2,EVENT_DETACH_MATERIAL,e,REASON_EFFECT+REASON_MATERIAL+REASON_FUSION,tp,tc:GetControler(),0)
+    end
+    sg:Clear()
 end
 

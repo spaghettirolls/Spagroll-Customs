@@ -31,9 +31,9 @@ function s.rmfilter(c,tp)
 	return c:IsSpellTrap() and c:IsAbleToRemoveAsCost()
 end
 function s.setcost(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(s.rmfilter,tp,LOCATION_ONFIELD,0,1,e:GetHandler(),tp) end
+	if chk==0 then return Duel.IsExistingMatchingCard(s.rmfilter,tp,LOCATION_ONFIELD|LOCATION_GRAVE,0,1,e:GetHandler(),tp) end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
-	local g=Duel.SelectMatchingCard(tp,s.rmfilter,tp,LOCATION_ONFIELD,0,1,1,e:GetHandler(),tp)
+	local g=Duel.SelectMatchingCard(tp,s.rmfilter,tp,LOCATION_ONFIELD|LOCATION_GRAVE,0,1,1,e:GetHandler(),tp)
 	Duel.Remove(g,POS_FACEUP,REASON_COST)
 end
 --Return to hand
@@ -53,9 +53,7 @@ end
 function s.matfilter(c)
 	return c:IsAbleToDeckOrExtraAsCost() and not c:IsCode(id)
 end
-function s.checkmat(tp,sg,fc)
-	return sg:IsExists(Card.IsLocation,1,nil,LOCATION_HAND+LOCATION_GRAVE+LOCATION_ONFIELD+LOCATION_REMOVED)
-end
+
 
 function s.tdcfilter(c)
 	return ((c:IsFaceup() and c:IsLocation(LOCATION_GRAVE+LOCATION_REMOVED)) or (c:IsSpellTrap() and c:IsSetCard(0x3D4) and c:IsLocation(LOCATION_HAND+LOCATION_ONFIELD))) and c:IsAbleToDeckOrExtraAsCost() and not c:IsCode(id)
@@ -64,10 +62,11 @@ end
 function s.fextra(e,tp,mg)
     if not Duel.IsPlayerAffectedByEffect(tp,69832741) then
         local mg=Duel.GetMatchingGroup(aux.NecroValleyFilter(s.tdcfilter),tp,LOCATION_HAND+LOCATION_ONFIELD+LOCATION_GRAVE+LOCATION_REMOVED,0,nil)
-        return mg,s.checkmat
+        return mg,nil
     end
-    return nil,s.checkmat
+    return nil,nil
 end
+
 
 function s.settofieldfilter(c)
 	return c:IsSSetable() and ((c:IsLocation(LOCATION_GRAVE+LOCATION_REMOVED+LOCATION_HAND+LOCATION_OVERLAY)) or (c:IsLocation(LOCATION_MZONE) and c:IsFaceup()))
