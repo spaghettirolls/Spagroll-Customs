@@ -29,6 +29,7 @@ function s.disop(e,tp,eg,ep,ev,re,r,rp)
 	local g=Duel.SelectMatchingCard(tp,s.filter,tp,LOCATION_DECK,0,1,1,nil)
 	if #g>0 then
 		Duel.SendtoGrave(g,REASON_EFFECT)
+		Duel.BreakEffect()
 		local g=Duel.GetMatchingGroup(s.spfilter,tp,LOCATION_EXTRA,0,nil,e,tp)
 	if Duel.SendtoGrave(g,REASON_EFFECT) and #g>0 and Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and Duel.SelectYesNo(tp,aux.Stringid(id,1)) then
 		Duel.BreakEffect()
