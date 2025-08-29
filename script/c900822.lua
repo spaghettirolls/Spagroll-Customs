@@ -108,3 +108,4 @@ function s.setop(e,tp,eg,ep,ev,re,r,rp)
 		c:RegisterEffect(e1)
 	end
 end
+end
