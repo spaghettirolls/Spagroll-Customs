@@ -1,3 +1,6 @@
+--Poltiquette Silverscare
+--Scripted by Beanbag
+
 local s,id=GetID()
 function s.initial_effect(c)
 	--discard to send 1 "Poltiquette" Spell/trap from Deck to GY
@@ -12,7 +15,20 @@ function s.initial_effect(c)
 	e1:SetTarget(s.distg)
 	e1:SetOperation(s.disop)
 	c:RegisterEffect(e1)
+	 --Special Summon from GY when a "Poltiquette" Continuous Trap is activated
+    local e2=Effect.CreateEffect(c)
+    e2:SetDescription(aux.Stringid(id,0))
+    e2:SetCategory(CATEGORY_SPECIAL_SUMMON)
+    e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
+    e2:SetCode(EVENT_CHAINING)
+    e2:SetRange(LOCATION_GRAVE)
+    e2:SetCountLimit(1,{id,0})
+    e2:SetCondition(s.spcon)
+    e2:SetTarget(s.sptg)
+    e2:SetOperation(s.spop)
+    c:RegisterEffect(e2)
 end
+
 
 function s.tgfilter(c)
     return c:IsSetCard(0x3D4) and c:IsType(TYPE_SPELL+TYPE_TRAP) and c:IsAbleToGrave()
@@ -50,5 +66,40 @@ function s.disop(e,tp,eg,ep,ev,re,r,rp)
                 tc:CompleteProcedure() -- necessary to register it as Fusion Summoned
             end
         end
+    end
+end
+
+--Check if a "Poltiquette" Continuous Trap is activated
+function s.cfilter(c)
+    return c:IsType(TYPE_TRAP) and c:IsType(TYPE_CONTINUOUS) and c:IsFaceupEx()
+        and c:IsSetCard(0x3D4)
+end
+
+function s.spcon(e,tp,eg,ep,ev,re,r,rp)
+    local rc=re:GetHandler()
+    return re:IsActiveType(TYPE_TRAP) and rc:IsType(TYPE_CONTINUOUS) 
+        and rc:IsSetCard(0x3D4) and rp==tp
+end
+
+--Targeting
+function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
+    if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
+        and Duel.IsExistingMatchingCard(aux.NecroValleyFilter(Card.IsCanBeSpecialSummoned),tp,LOCATION_GRAVE,0,1,nil,e,0,tp,false,false) end
+    Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,e:GetHandler(),1,0,0)
+end
+
+--Operation
+function s.spop(e,tp,eg,ep,ev,re,r,rp)
+    local c=e:GetHandler()
+    if c:IsRelateToEffect(e) and Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)>0 then
+        --Banish when leaves field
+        local e1=Effect.CreateEffect(c)
+        e1:SetDescription(3300)
+        e1:SetType(EFFECT_TYPE_SINGLE)
+        e1:SetCode(EFFECT_LEAVE_FIELD_REDIRECT)
+        e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
+        e1:SetReset(RESET_EVENT+RESETS_REDIRECT)
+        e1:SetValue(LOCATION_REMOVED)
+        c:RegisterEffect(e1,true)
     end
 end
