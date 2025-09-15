@@ -4,19 +4,10 @@ function s.initial_effect(c)
 	--Synchro Summon
 	Synchro.AddProcedure(c,aux.FilterBoolFunctionEx(Card.IsSetCard,0x30),1,1,Synchro.NonTunerEx(Card.IsSetCard,0x30),1,99)
 	c:EnableReviveLimit()
-	--Alternative Synchro using Vylon Equip Spells as Level 2
-	local e1=Effect.CreateEffect(c)
-	e1:SetType(EFFECT_TYPE_FIELD)
-	e1:SetCode(EFFECT_SYNCHRO_MAT_FROM_HAND)
-	e1:SetRange(LOCATION_MZONE+LOCATION_EXTRA)
-	e1:SetTargetRange(LOCATION_SZONE,0)
-	e1:SetTarget(function(e,c) return c:IsSetCard(0x30) and c:IsType(TYPE_EQUIP) end)
-	c:RegisterEffect(e1)
 	--LP instead of paying cost
 	local e2=Effect.CreateEffect(c)
 	e2:SetType(EFFECT_TYPE_FIELD)
 	e2:SetCode(EFFECT_LPCOST_CHANGE)
-	e2:SetRange(LOCATION_MZONE)
 	e2:SetTargetRange(1,0)
 	e2:SetValue(function(e,re,rp,val) 
 		if re and re:GetHandler():IsSetCard(0x30) then 
