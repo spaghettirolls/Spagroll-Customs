@@ -84,11 +84,11 @@ function s.lrcon(e,tp,eg,ep,ev,re,r,rp)
 	if tp~=ep then return false end
 	if Duel.GetLP(ep)<ev then return false end
 	if not (re and re:IsActivated()) then return false end
-	e:SetLabel(ev)
+--[[	e:SetLabel(ev)]]
 	local rc=re:GetHandler()
 	return true
 end
 function s.lrop(e,tp,eg,ep,ev,re,r,rp)
-	local ct=e:GetLabel()
-	Duel.Recover(tp,ct,REASON_COST)
+--[[	local ct=e:GetLabel()]]
+	Duel.Recover(tp,ev,REASON_COST)
 end
