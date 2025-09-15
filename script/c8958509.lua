@@ -14,14 +14,22 @@ function s.initial_effect(c)
 	e1:SetTarget(s.eqtg)
 	e1:SetOperation(s.eqop)
 	c:RegisterEffect(e1)
-	local e2=Effect.CreateEffect(c)
+--[[	local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,1))
 	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
 	e2:SetRange(LOCATION_MZONE)
 	e2:SetCode(EFFECT_LPCOST_REPLACE)
 	e2:SetCondition(s.lrcon)
 	e2:SetOperation(s.lrop)
-	c:RegisterEffect(e2)
+	c:RegisterEffect(e2)]]
+local e2=Effect.CreateEffect(c)
+e2:SetType(EFFECT_TYPE_FIELD)
+e2:SetCode(EFFECT_LPCOST_CHANGE)
+e2:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+e2:SetRange(LOCATION_SZONE)
+e2:SetTargetRange(1,0)
+e2:SetValue(s.costchange)
+c:RegisterEffect(e2)
 end
 
 
@@ -80,15 +88,23 @@ function s.eqop(e,tp,eg,ep,ev,re,r,rp)
 end
 
 
-function s.lrcon(e,tp,eg,ep,ev,re,r,rp)
+--[[function s.lrcon(e,tp,eg,ep,ev,re,r,rp)
 	if tp~=ep then return false end
 	if Duel.GetLP(ep)<ev then return false end
 	if not (re and re:IsActivated()) then return false end
---[[	e:SetLabel(ev)]]
+	e:SetLabel(ev)
 	local rc=re:GetHandler()
 	return true
 end
 function s.lrop(e,tp,eg,ep,ev,re,r,rp)
---[[	local ct=e:GetLabel()]]
-	Duel.Recover(tp,ev,REASON_COST)
+	local ct=e:GetLabel()
+	Duel.Recover(tp,ct,REASON_COST)
+end]]
+
+
+s.listed_names={82432018}
+function s.costchange(e,re,rp,val)
+if re:GetHandler():IsSetCard(CARD_VYLON) then
+return 0
+else return val end
 end
