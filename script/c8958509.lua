@@ -85,12 +85,13 @@ function s.costchange(e,re,rp,val)
     -- If the effect belongs to a Vylon card
     if re:GetHandler():IsSetCard(SET_VYLON) then
         -- Gain LP equal to the cost we would have paid
-        Duel.Recover(rp,math.abs(val),REASON_EFFECT)
+
         return 0
     else
         -- Pay normally otherwise
         return val
     end
+    Duel.Recover(rp,math.abs(val),REASON_EFFECT)
 end
 
 
