@@ -14,12 +14,14 @@ function s.initial_effect(c)
 	e1:SetTarget(s.eqtg)
 	e1:SetOperation(s.eqop)
 	c:RegisterEffect(e1)
-    local e2=Effect.CreateEffect(c)
-    e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
-    e2:SetCode(EVENT_CHAINING)
-    e2:SetRange(LOCATION_MZONE)
-    e2:SetOperation(c8958509.lpreplace)
-    c:RegisterEffect(e2)
+	local e2=Effect.CreateEffect(c)
+	e2:SetDescription(aux.Stringid(id,1))
+	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+	e2:SetRange(LOCATION_MZONE)
+	e2:SetCode(EFFECT_LPCOST_REPLACE)
+	e2:SetCondition(s.lrcon)
+	e2:SetOperation(s.lrop)
+	c:RegisterEffect(e2)
 end
 
 
@@ -78,18 +80,15 @@ function s.eqop(e,tp,eg,ep,ev,re,r,rp)
 end
 
 
-
-function c8958509.lpreplace(e,tp,eg,ep,ev,re,r,rp)
-    local rc=re:GetHandler()
-    if rc:IsSetCard(0x30) and re:IsHasType(EFFECT_TYPE_ACTIVATE+EFFECT_TYPE_IGNITION+EFFECT_TYPE_QUICK_O) then
-        local cost=0
-        if re:GetHandler():GetActivateEffect():IsHasProperty(EFFECT_FLAG_CARD_TARGET) then
-            cost=0 -- optional: adjust if needed
-        end
-        local lp = re:GetHandler():GetCost()
-        if lp and lp>0 then
-            Duel.Recover(tp, lp, REASON_EFFECT)
-            -- prevent LP payment here (engine-specific, may need custom override)
-        end
-    end
+function s.lrcon(e,tp,eg,ep,ev,re,r,rp)
+	if tp~=ep then return false end
+	if Duel.GetLP(ep)<ev then return false end
+	if not (re and re:IsActivated()) then return false end
+	e:SetLabel(ev)
+	local rc=re:GetHandler()
+	return true
+end
+function s.lrop(e,tp,eg,ep,ev,re,r,rp)
+	local ct=e:GetLabel()
+	Duel.Recover(tp,ct,REASON_COST)
 end
