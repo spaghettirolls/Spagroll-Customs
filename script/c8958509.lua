@@ -32,6 +32,7 @@ function s.initial_effect(c)
 	e3:SetCategory(CATEGORY_EQUIP)
 	e3:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
 	e3:SetCode(EVENT_BATTLE_DESTROYING)
+	e3:SetCondition(aux.bdocon)
 	e3:SetTarget(s.eqtg)
 	e3:SetOperation(s.eqop)
 	c:RegisterEffect(e3)
@@ -48,32 +49,15 @@ end
 
 --Equip destroyed monster
 function s.eqtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_SZONE)>0 
-		and e:GetHandler():IsRelateToBattle() end
-	Duel.SetOperationInfo(0,CATEGORY_EQUIP,nil,1,tp,LOCATION_GRAVE)
+	local bc=e:GetHandler():GetBattleTarget()
+	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_SZONE)>0 and bc:IsMonster() and bc:IsFaceup() end
+	Duel.SetTargetCard(bc)
+	Duel.SetOperationInfo(0,CATEGORY_EQUIP,bc,1,tp,0)
 end
 function s.eqop(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
-	local bc=c:GetBattleTarget()
-	if c:IsRelateToBattle() and Duel.GetLocationCount(tp,LOCATION_SZONE)>0 and bc:IsRelateToBattle() then
-		Duel.Equip(tp,bc,c)
-		--Atk/Def boost
-		local e1=Effect.CreateEffect(c)
-		e1:SetType(EFFECT_TYPE_EQUIP)
-		e1:SetCode(EFFECT_UPDATE_ATTACK)
-		e1:SetValue(500)
-		e1:SetReset(RESET_EVENT+RESETS_STANDARD)
-		bc:RegisterEffect(e1)
-		local e2=e1:Clone()
-		e2:SetCode(EFFECT_UPDATE_DEFENSE)
-		bc:RegisterEffect(e2)
-		--Treat as Vylon card
-		local e3=Effect.CreateEffect(c)
-		e3:SetType(EFFECT_TYPE_EQUIP)
-		e3:SetCode(EFFECT_ADD_SETCODE)
-		e3:SetValue(0x30)
-		e3:SetReset(RESET_EVENT+RESETS_STANDARD)
-		bc:RegisterEffect(e3)
+	local bc=Duel.GetFirstTarget()
+	if bc:IsRelateToEffect(e) and bc:IsMonster() and bc:IsFaceup() then
+		e:GetHandler():EquipByEffectAndLimitRegister(e,tp,bc,id)
 	end
 end
 
