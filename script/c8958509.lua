@@ -14,14 +14,6 @@ function s.initial_effect(c)
 	e1:SetTarget(s.eqtg)
 	e1:SetOperation(s.eqop)
 	c:RegisterEffect(e1)
---[[	local e2=Effect.CreateEffect(c)
-	e2:SetDescription(aux.Stringid(id,1))
-	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
-	e2:SetRange(LOCATION_MZONE)
-	e2:SetCode(EFFECT_LPCOST_REPLACE)
-	e2:SetCondition(s.lrcon)
-	e2:SetOperation(s.lrop)
-	c:RegisterEffect(e2)]]
 local e2=Effect.CreateEffect(c)
 e2:SetType(EFFECT_TYPE_FIELD)
 e2:SetCode(EFFECT_LPCOST_CHANGE)
@@ -88,26 +80,24 @@ function s.eqop(e,tp,eg,ep,ev,re,r,rp)
 end
 
 
---[[function s.lrcon(e,tp,eg,ep,ev,re,r,rp)
-	if tp~=ep then return false end
-	if Duel.GetLP(ep)<ev then return false end
-	if not (re and re:IsActivated()) then return false end
-	e:SetLabel(ev)
-	local rc=re:GetHandler()
-	return true
-end
-function s.lrop(e,tp,eg,ep,ev,re,r,rp)
-	local ct=e:GetLabel()
-	Duel.Recover(tp,ct,REASON_COST)
-end]]
-
-
-
-
 function s.costchange(e,re,rp,val)
+    local c=e:GetHandler()
+    -- If the effect belongs to a Vylon card
+    if re:GetHandler():IsSetCard(CARD_VYLON) then
+        -- Gain LP equal to the cost we would have paid
+        Duel.Recover(rp,math.abs(val),REASON_EFFECT)
+        return 0
+    else
+        -- Pay normally otherwise
+        return val
+    end
+end
+
+
+--[[function s.costchange(e,re,rp,val)
     if re:GetHandler():IsSetCard(SET_VYLON) then
         return -val
     else
         return val
     end
-end
+end]]
