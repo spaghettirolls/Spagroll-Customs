@@ -4,9 +4,6 @@ function s.initial_effect(c)
 	--Synchro Summon
 	Synchro.AddProcedure(c,aux.FilterBoolFunctionEx(Card.IsSetCard,0x30),1,1,aux.FilterBoolFunctionEx(Card.IsSetCard,0x30),1,99)
 	c:EnableReviveLimit()
---Custom Vylon-style monster
-local s,id=GetID()
-function s.initial_effect(c)
 	--Equip destroyed monster
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
