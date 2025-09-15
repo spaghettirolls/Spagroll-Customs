@@ -15,12 +15,10 @@ function s.initial_effect(c)
 	e1:SetOperation(s.eqop)
 	c:RegisterEffect(e1)
     local e2=Effect.CreateEffect(c)
-    e2:SetType(EFFECT_TYPE_FIELD)
-    e2:SetCode(EFFECT_LPCOST_REPLACE)
+    e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+    e2:SetCode(EVENT_CHAINING)
     e2:SetRange(LOCATION_MZONE)
-    e2:SetTargetRange(LOCATION_MZONE,0)
-    e2:SetTarget(c8958509.lpcostrep)
-    e2:SetValue(c8958509.lpcostval)
+    e2:SetOperation(vylonlp.lpreplace)
     c:RegisterEffect(e2)
 end
 
@@ -80,10 +78,18 @@ function s.eqop(e,tp,eg,ep,ev,re,r,rp)
 end
 
 
-function c8958509.lpcostrep(e,c,tp,exval)
-    return c:IsSetCard(0x107) -- assuming "Vylon" set code is 0x107
-end
 
-function c8958509.lpcostval(e,re,rp,val)
-    return 0-val -- negate the cost and give LP instead
+function vylonlp.lpreplace(e,tp,eg,ep,ev,re,r,rp)
+    local rc=re:GetHandler()
+    if rc:IsSetCard(0x30) and re:IsHasType(EFFECT_TYPE_ACTIVATE+EFFECT_TYPE_IGNITION+EFFECT_TYPE_QUICK_O) then
+        local cost=0
+        if re:GetHandler():GetActivateEffect():IsHasProperty(EFFECT_FLAG_CARD_TARGET) then
+            cost=0 -- optional: adjust if needed
+        end
+        local lp = re:GetHandler():GetCost()
+        if lp and lp>0 then
+            Duel.Recover(tp, lp, REASON_EFFECT)
+            -- prevent LP payment here (engine-specific, may need custom override)
+        end
+    end
 end
