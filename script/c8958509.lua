@@ -26,7 +26,7 @@ local e2=Effect.CreateEffect(c)
 e2:SetType(EFFECT_TYPE_FIELD)
 e2:SetCode(EFFECT_LPCOST_CHANGE)
 e2:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
-e2:SetRange(LOCATION_SZONE)
+e2:SetRange(LOCATION_MZONE)
 e2:SetTargetRange(1,0)
 e2:SetValue(s.costchange)
 c:RegisterEffect(e2)
@@ -102,9 +102,12 @@ function s.lrop(e,tp,eg,ep,ev,re,r,rp)
 end]]
 
 
-s.listed_names={82432018}
+
+
 function s.costchange(e,re,rp,val)
-if re:GetHandler():IsSetCard(CARD_VYLON) then
-return 0
-else return val end
+    if re:GetHandler():IsSetCard(CARD_VYLON) then
+        return math.abs(val)
+    else
+        return val
+    end
 end
