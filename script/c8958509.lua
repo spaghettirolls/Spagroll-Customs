@@ -18,22 +18,12 @@ function s.initial_effect(c)
     e2:SetType(EFFECT_TYPE_FIELD)
     e2:SetCode(EFFECT_LPCOST_REPLACE)
     e2:SetRange(LOCATION_MZONE)
-    e2:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
-    e2:SetTargetRange(1,0)
-    e2:SetTarget(s.lpcost_tg)
-    e2:SetValue(s.lpcost_rep)
+    e2:SetTargetRange(LOCATION_MZONE,0)
+    e2:SetTarget(c8958509.lpcostrep)
+    e2:SetValue(c8958509.lpcostval)
     c:RegisterEffect(e2)
-    --Fallback: change LP cost to 0 and gain LP if replace was skipped
-    local e3=Effect.CreateEffect(c)
-    e3:SetType(EFFECT_TYPE_FIELD)
-    e3:SetCode(EFFECT_LPCOST_CHANGE)
-    e3:SetRange(LOCATION_MZONE)
-    e3:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
-    e3:SetTargetRange(1,0)
-    e3:SetTarget(s.lpcost_tg)
-    e3:SetValue(s.lpcost_change)
-    c:RegisterEffect(e3)
 end
+
 
 -- Target: the monster this card destroyed
 function s.eqtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
@@ -89,25 +79,11 @@ function s.eqop(e,tp,eg,ep,ev,re,r,rp)
 	tc:RegisterEffect(e4)
 end
 
---Check if the LP payment comes from a "Vylon" monster effect
-function s.lpcost_tg(e,re,rp)
-    local rc=re:GetHandler()
-    return rc and rc:IsSetCard(0x30) and rc:IsType(TYPE_MONSTER)
+
+function c8958509.lpcostrep(e,c,tp,exval)
+    return c:IsSetCard(0x107) -- assuming "Vylon" set code is 0x107
 end
 
---Replacement: instead of paying LP, recover that much
-function s.lpcost_rep(e,re,rp,val)
-    if Duel.GetFlagEffect(rp,id)>0 then return false end
-    Duel.RegisterFlagEffect(rp,id,RESET_CHAIN,0,1)
-    Duel.Recover(rp,val,REASON_EFFECT)
-    return true
-end
-
---Fallback: if replace didn’t trigger (e.g. graveyard activations), set cost to 0 and gain LP
-function s.lpcost_change(e,re,rp,val)
-    if Duel.GetFlagEffect(rp,id)>0 then
-        return 0
-    end
-    Duel.Recover(rp,val,REASON_EFFECT)
-    return 0
+function c8958509.lpcostval(e,re,rp,val)
+    return 0-val -- negate the cost and give LP instead
 end
