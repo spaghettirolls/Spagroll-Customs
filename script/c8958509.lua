@@ -18,7 +18,7 @@ function s.initial_effect(c)
     e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
     e2:SetCode(EVENT_CHAINING)
     e2:SetRange(LOCATION_MZONE)
-    e2:SetOperation(vylonlp.lpreplace)
+    e2:SetOperation(c8958509.lpreplace)
     c:RegisterEffect(e2)
 end
 
@@ -79,7 +79,7 @@ end
 
 
 
-function vylonlp.lpreplace(e,tp,eg,ep,ev,re,r,rp)
+function c8958509.lpreplace(e,tp,eg,ep,ev,re,r,rp)
     local rc=re:GetHandler()
     if rc:IsSetCard(0x30) and re:IsHasType(EFFECT_TYPE_ACTIVATE+EFFECT_TYPE_IGNITION+EFFECT_TYPE_QUICK_O) then
         local cost=0
