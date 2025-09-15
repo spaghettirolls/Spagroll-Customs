@@ -45,18 +45,15 @@ function s.eqop(e,tp,eg,ep,ev,re,r,rp)
 	if not c or not c:IsRelateToEffect(e) or not c:IsFaceup() then return end
 	if not tc or not tc:IsLocation(LOCATION_GRAVE) then return end
 	if Duel.GetLocationCount(tp,LOCATION_SZONE)<=0 then return end
+    Duel.Equip(tp,tc,c)
+		local e1=Effect.CreateEffect(c)
+		e1:SetType(EFFECT_TYPE_SINGLE)
+		e1:SetCode(EFFECT_EQUIP_LIMIT)
+		e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
+		e1:SetValue(s.eqlimit)
+		e1:SetReset(RESET_EVENT|RESETS_STANDARD)
+		c:RegisterEffect(e1)
 
-	-- Equip while ignoring the equip limit (true), then register a proper equip-limit effect.
-	if Duel.Equip(tp,tc,c,true)==0 then return end
-
-	-- Equip limit: can only be equipped to 'c'
-	local e1=Effect.CreateEffect(c)
-	e1:SetType(EFFECT_TYPE_SINGLE)
-	e1:SetCode(EFFECT_EQUIP_LIMIT)
-	e1:SetProperty(EFFECT_FLAG_OWNER_RELATE+EFFECT_FLAG_CANNOT_DISABLE)
-	e1:SetReset(RESET_EVENT+RESETS_STANDARD)
-	e1:SetValue(function(e,cc) return cc==c end)
-	tc:RegisterEffect(e1)
 
 	-- ATK +500
 	local e2=Effect.CreateEffect(c)
@@ -78,7 +75,10 @@ function s.eqop(e,tp,eg,ep,ev,re,r,rp)
 	e4:SetReset(RESET_EVENT+RESETS_STANDARD)
 	tc:RegisterEffect(e4)
 end
-
+function s.eqlimit(e,c)
+	local tp=e:GetHandlerPlayer()
+	return c:IsControler(tp)
+end
 
 function s.costchange(e,re,rp,val)
     local c=e:GetHandler()
