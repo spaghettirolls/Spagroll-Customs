@@ -63,4 +63,3 @@ function s.eqop(e,tp,eg,ep,ev,re,r,rp)
 		tc:RegisterEffect(e4)
 	end
 end
-end
