@@ -106,7 +106,7 @@ end]]
 
 function s.costchange(e,re,rp,val)
     if re:GetHandler():IsSetCard(SET_VYLON) then
-        return math.abs(val)
+        return -val
     else
         return val
     end
