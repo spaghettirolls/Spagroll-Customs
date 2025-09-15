@@ -14,6 +14,14 @@ function s.initial_effect(c)
 	e1:SetTarget(s.eqtg)
 	e1:SetOperation(s.eqop)
 	c:RegisterEffect(e1)
+	local e2=Effect.CreateEffect(c)
+    e2:SetType(EFFECT_TYPE_FIELD)
+    e2:SetCode(EFFECT_LPCOST_REPLACE)
+    e2:SetRange(LOCATION_MZONE)
+    e2:SetTargetRange(1,0)
+    e2:SetTarget(s.lpcost_tg)
+    e2:SetValue(s.lpcost_val)
+    c:RegisterEffect(e2)
 end
 
 -- Target: the monster this card destroyed
@@ -68,4 +76,15 @@ function s.eqop(e,tp,eg,ep,ev,re,r,rp)
 	e4:SetValue(0x30) -- Vylon setcode
 	e4:SetReset(RESET_EVENT+RESETS_STANDARD)
 	tc:RegisterEffect(e4)
+end
+
+function s.lpcost_tg(e,re,rp)
+    local rc=re:GetHandler()
+    return rc:IsSetCard(0x30) and rc:IsType(TYPE_MONSTER)
+end
+
+--instead of paying LP, gain that much
+function s.lpcost_val(e,re,rp,val)
+    Duel.Recover(rp,val,REASON_EFFECT)
+    return true
 end
