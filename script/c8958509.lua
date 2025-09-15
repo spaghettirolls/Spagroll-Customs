@@ -69,7 +69,8 @@ function s.eqop(e,tp,eg,ep,ev,re,r,rp)
 
 	-- Treated as "Vylon"
 	local e4=Effect.CreateEffect(c)
-	e4:SetType(EFFECT_TYPE_EQUIP)
+	e4:SetType(EFFECT_TYPE_SINGLE)
+	e4:SetRange(LOCATION_SZONE)
 	e4:SetCode(EFFECT_ADD_SETCODE)
 	e4:SetValue(0x30) -- Vylon setcode
 	e4:SetReset(RESET_EVENT+RESETS_STANDARD)
