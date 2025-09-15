@@ -4,75 +4,47 @@ function s.initial_effect(c)
 	--Synchro Summon
 	Synchro.AddProcedure(c,aux.FilterBoolFunctionEx(Card.IsSetCard,0x30),1,1,Synchro.NonTunerEx(Card.IsSetCard,0x30),1,99)
 	c:EnableReviveLimit()
-	--LP instead of paying cost
-	local e2=Effect.CreateEffect(c)
-	e2:SetType(EFFECT_TYPE_FIELD)
-	e2:SetCode(EFFECT_LPCOST_CHANGE)
-	e2:SetTargetRange(1,0)
-	e2:SetValue(function(e,re,rp,val) 
-		if re and re:GetHandler():IsSetCard(0x30) then 
-			return 0 
-		else 
-			return val 
-		end
-	end)
-	c:RegisterEffect(e2)
-	--Equip destroyed monster
-	local e3=Effect.CreateEffect(c)
-	e3:SetDescription(aux.Stringid(id,0))
-	e3:SetCategory(CATEGORY_EQUIP)
-	e3:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
-	e3:SetCode(EVENT_BATTLE_DESTROYING)
-	e3:SetCondition(aux.bdocon)
-	e3:SetTarget(s.eqtg)
-	e3:SetOperation(s.eqop)
-	c:RegisterEffect(e3)
-	--Destroy replacement
-	local e4=Effect.CreateEffect(c)
-	e4:SetType(EFFECT_TYPE_CONTINUOUS+EFFECT_TYPE_FIELD)
-	e4:SetCode(EFFECT_DESTROY_REPLACE)
-	e4:SetRange(LOCATION_MZONE)
-	e4:SetTarget(s.reptg)
-	e4:SetValue(s.repval)
-	e4:SetOperation(s.repop)
-	c:RegisterEffect(e4)
+		local e1=Effect.CreateEffect(c)
+	e1:SetDescription(aux.Stringid(id,0))
+	e1:SetCategory(CATEGORY_EQUIP)
+	e1:SetCode(EVENT_BATTLE_DESTROYING)
+	e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_F)
+	e1:SetCondition(s.eqcon)
+	e1:SetTarget(s.eqtg)
+	e1:SetOperation(s.eqop)
+	c:RegisterEffect(e1)
+	aux.AddEREquipLimit(c,nil,aux.FilterBoolFunction(Card.IsMonster),s.equipop,e1)
 end
-
---Equip destroyed monster
+function s.eqcon(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	local tc=c:GetBattleTarget()
+	return c:IsRelateToBattle() and c:IsFaceup() and tc:IsLocation(LOCATION_GRAVE) and tc:IsMonster() and tc:IsReason(REASON_BATTLE) 
+		and not tc:IsForbidden()
+end
 function s.eqtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	local bc=e:GetHandler():GetBattleTarget()
-	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_SZONE)>0 and bc:IsMonster() and bc:IsFaceup() end
-	Duel.SetTargetCard(bc)
-	Duel.SetOperationInfo(0,CATEGORY_EQUIP,bc,1,tp,0)
+	if chk==0 then return true end
+	local tc=e:GetHandler():GetBattleTarget()
+	Duel.SetTargetCard(tc)
+	Duel.SetOperationInfo(0,CATEGORY_LEAVE_GRAVE,tc,1,0,0)
 end
-function s.eqop(e,tp,eg,ep,ev,re,r,rp)
-	local bc=Duel.GetFirstTarget()
-	if bc:IsRelateToEffect(e) and bc:IsMonster() and bc:IsFaceup() then
-		e:GetHandler():EquipByEffectAndLimitRegister(e,tp,bc,id)
+function s.equipop(c,e,tp,tc)
+	local atk=tc:GetTextAttack()
+	if not c:EquipByEffectAndLimitRegister(e,tp,tc) then return end
+	if atk<0 then atk=0 end
+	if atk>0 then
+		local e2=Effect.CreateEffect(c)
+		e2:SetType(EFFECT_TYPE_EQUIP)
+		e2:SetProperty(EFFECT_FLAG_IGNORE_IMMUNE+EFFECT_FLAG_OWNER_RELATE)
+		e2:SetCode(EFFECT_UPDATE_ATTACK)
+		e2:SetReset(RESET_EVENT|RESETS_STANDARD)
+		e2:SetValue(atk)
+		tc:RegisterEffect(e2)
 	end
 end
-
---Destruction replacement
-function s.repfilter(c,tp)
-	return c:IsSetCard(0x30) and c:IsType(TYPE_MONSTER)
-		and c:IsControler(tp) and c:IsLocation(LOCATION_MZONE)
-		and c:IsReason(REASON_EFFECT) and not c:IsReason(REASON_REPLACE)
-end
-function s.eqfilter(c)
-	return c:IsSetCard(0x30) and c:IsType(TYPE_EQUIP) and c:IsAbleToGrave()
-end
-function s.reptg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return eg:IsExists(s.repfilter,1,nil,tp) 
-		and Duel.IsExistingMatchingCard(s.eqfilter,tp,LOCATION_SZONE,0,1,nil) end
-	return Duel.SelectYesNo(tp,aux.Stringid(id,1))
-end
-function s.repval(e,c)
-	return s.repfilter(c,e:GetHandlerPlayer())
-end
-function s.repop(e,tp,eg,ep,ev,re,r,rp)
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
-	local g=Duel.SelectMatchingCard(tp,s.eqfilter,tp,LOCATION_SZONE,0,1,1,nil)
-	if #g>0 then
-		Duel.SendtoGrave(g,REASON_EFFECT+REASON_REPLACE)
+function s.eqop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	local tc=Duel.GetFirstTarget()
+	if tc and tc:IsRelateToEffect(e) then
+		s.equipop(c,e,tp,tc)
 	end
 end
