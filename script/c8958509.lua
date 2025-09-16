@@ -24,7 +24,6 @@ function s.initial_effect(c)
 	c:RegisterEffect(e2)
 end
 
-
 function s.eqtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	local c=e:GetHandler()
 	local tc=c:GetBattleTarget()
@@ -37,7 +36,6 @@ function s.eqtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	Duel.SetTargetCard(tc)
 	Duel.SetOperationInfo(0,CATEGORY_EQUIP,tc,1,0,0)
 end
-
 function s.eqop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	local tc=Duel.GetFirstTarget()
@@ -52,8 +50,6 @@ function s.eqop(e,tp,eg,ep,ev,re,r,rp)
 		e1:SetValue(s.eqlimit)
 		e1:SetReset(RESET_EVENT|RESETS_STANDARD)
 		tc:RegisterEffect(e1)
-
-
 	-- ATK +500
 	local e2=Effect.CreateEffect(c)
 	e2:SetType(EFFECT_TYPE_EQUIP)
@@ -65,7 +61,6 @@ function s.eqop(e,tp,eg,ep,ev,re,r,rp)
 	local e3=e2:Clone()
 	e3:SetCode(EFFECT_UPDATE_DEFENSE)
 	tc:RegisterEffect(e3)
-
 	-- Treated as "Vylon"
 	local e4=Effect.CreateEffect(c)
 	e4:SetType(EFFECT_TYPE_SINGLE)
@@ -79,7 +74,6 @@ function s.eqlimit(e,c)
 	local tp=e:GetHandlerPlayer()
 	return c:IsControler(tp)
 end
-
 function s.lrcon(e,tp,eg,ep,ev,re,r,rp)
 	if tp~=ep then return false end
 	if Duel.GetLP(ep)<ev then return false end
@@ -90,6 +84,6 @@ function s.lrcon(e,tp,eg,ep,ev,re,r,rp)
 end
 function s.lrop(e,tp,eg,ep,ev,re,r,rp)
 	local ct=e:GetLabel()
-	Duel.Recover(tp,ct,REASON_COST)
+	Duel.Recover(tp,ct,REASON_EFFECT)
 end
 
