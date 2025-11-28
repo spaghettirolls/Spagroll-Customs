@@ -13,21 +13,21 @@ function s.initial_effect(c)
 	c:RegisterEffect(e1)
 end
 function s.plfilter(c,tp)
-	return c:IsCode(22702055) and not c:IsForbidden() and c:CheckUniqueOnField(tp)
+	return c:IsCode(22702055)
 end
 function s.pltg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()
 	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_FZONE)>0
 		and Duel.GetLocationCount(tp,LOCATION_MZONE)>0
 		and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
-		and Duel.IsExistingMatchingCard(s.plfilter,tp,LOCATION_DECK,0,1,nil,tp) end
+		and Duel.IsExistingMatchingCard(s.plfilter,tp,LOCATION_DECK+LOCATION_HAND+LOCATION_GRAVE,0,1,nil,tp) end
 	Duel.SetPossibleOperationInfo(0,CATEGORY_SPECIAL_SUMMON,c,1,tp,0)
 end
 function s.plop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	if Duel.GetLocationCount(tp,LOCATION_SZONE)>0 then
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOFIELD)
-		local tc=Duel.SelectMatchingCard(tp,s.plfilter,tp,LOCATION_DECK,0,1,1,nil,tp):GetFirst()
+		local tc=Duel.SelectMatchingCard(tp,s.plfilter,tp,LOCATION_DECK+LOCATION_HAND+LOCATION_GRAVE,0,1,1,nil,tp):GetFirst()
 		if tc and Duel.MoveToField(tc,tp,tp,LOCATION_FZONE,POS_FACEUP,true) and c:IsRelateToEffect(e) then
 			Duel.BreakEffect()
 			Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)
