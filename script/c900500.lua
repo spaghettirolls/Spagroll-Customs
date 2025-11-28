@@ -17,15 +17,15 @@ function s.initial_effect(c)
     -----------------------------
     -- Place Umi & Special Summon this card
     -----------------------------
-    local e1=Effect.CreateEffect(c)
-    e1:SetDescription(aux.Stringid(id,0))
-    e1:SetCategory(CATEGORY_SPECIAL_SUMMON)
-    e1:SetType(EFFECT_TYPE_IGNITION)
-    e1:SetRange(LOCATION_HAND)
-    e1:SetCountLimit(1,{id,0})
-    e1:SetTarget(s.umi_tg)
-    e1:SetOperation(s.umi_op)
-    c:RegisterEffect(e1)
+ 	local e1=Effect.CreateEffect(c)
+	e1:SetDescription(aux.Stringid(id,0))
+	e1:SetCategory(CATEGORY_SPECIAL_SUMMON)
+	e1:SetType(EFFECT_TYPE_IGNITION)
+	e1:SetRange(LOCATION_HAND)
+	e1:SetCountLimit(1,{id,0})
+	e1:SetTarget(s.sptg)
+	e1:SetOperation(s.spop)
+	c:RegisterEffect(e1)
 
     -----------------------------
     -- Untargetable while Umi exists
@@ -87,79 +87,29 @@ function s.umifilter(c)
     return c:IsCode(22702055) and c:IsFieldSpell()
 end
 
-function s.umi_tg(e,tp,eg,ep,ev,re,r,rp,chk)
-    local c=e:GetHandler()
-    if chk==0 then
-        local g=Duel.IsExistingMatchingCard(s.umifilter,tp,LOCATION_HAND+LOCATION_DECK+LOCATION_GRAVE,0,1,nil)
-        local can1=Duel.GetLocationCount(tp,LOCATION_FZONE)>0
-        local can2=Duel.GetLocationCount(1-tp,LOCATION_FZONE)>0
-        return g and (can1 or can2) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
-    end
+function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
+	local c=e:GetHandler()
+	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
+		and c:IsCanBeSpecialSummoned(e,0,tp,false,false) end
+	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,c,1,0,0)
 end
-
-function s.umi_op(e,tp,eg,ep,ev,re,r,rp)
-    local c=e:GetHandler()
-    
-    -- Choose Umi
-    local g=Duel.SelectMatchingCard(tp,s.umifilter,tp,LOCATION_HAND+LOCATION_DECK+LOCATION_GRAVE,0,1,1,nil)
-    if #g==0 then return end
-    local umi=g:GetFirst()
-
-    -- Choose field to place it
-    local can1=Duel.GetLocationCount(tp,LOCATION_FZONE)>0
-    local can2=Duel.GetLocationCount(1-tp,LOCATION_FZONE)>0
-    local fp=nil
-
-    if can1 and can2 then
-        -- 0 = your field, 1 = opponent field
-        local sel=Duel.SelectOption(tp,"Place on your field","Place on opponent's field")
-        fp = (sel==0) and tp or (1-tp)
-    elseif can1 then
-        fp=tp
-    else
-        fp=1-tp
-    end
-
-    -- Place Umi
-    Duel.MoveToField(umi,tp,fp,LOCATION_FZONE,POS_FACEUP,true)
-
-    -- Special Summon this card
-    if c:IsRelateToEffect(e) then
-        Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)
-    end
+function s.plfilter(c)
+	return c:IsCode(98715423) and not c:IsForbidden()
 end
-
-----------------------------------------------------------
--- Second Effect: Quick Summon Fish Monster(s)
-----------------------------------------------------------
-function s.fishfilter(c,e,tp,p)
-    return c:IsRace(RACE_FISH) and c:IsCanBeSpecialSummoned(e,0,tp,false,false) 
+function s.spop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	if c:IsRelateToEffect(e) and Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)>0
+		and Duel.GetLocationCount(tp,LOCATION_FZONE)>0
+		and Duel.IsExistingMatchingCard(s.umifilter,tp,LOCATION_DECK+LOCATION_GRAVE+LOCATION_HAND,0,1,nil)
+		and Duel.SelectYesNo(tp,aux.Stringid(id,2)) then
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOFIELD)
+		local tc=Duel.SelectMatchingCard(tp,s.umifilter,tp,LOCATION_DECK+LOCATION_GRAVE+LOCATION_HAND0,1,1,nil):GetFirst()
+		if tc then
+			Duel.BreakEffect()
+			Duel.MoveToField(tc,tp,tp,LOCATION_FZONE,POS_FACEUP,true)
+		end
+	end
 end
-
-function s.fish_tg(e,tp,eg,ep,ev,re,r,rp,chk)
-    local ct = Duel.IsEnvironment(22702055) and 2 or 1
-    if chk==0 then
-        return Duel.IsExistingMatchingCard(s.fishfilter,tp,LOCATION_DECK+LOCATION_GRAVE,0,ct,nil,e,tp,tp)
-    end
-    Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,ct,tp,LOCATION_DECK+LOCATION_GRAVE)
-end
-
-function s.fish_op(e,tp,eg,ep,ev,re,r,rp)
-    local ct = Duel.IsEnvironment(22702055) and 2 or 1
-    if Duel.GetLocationCount(tp,LOCATION_MZONE)<1 then return end
-
-    local g=Duel.SelectMatchingCard(tp,s.fishfilter,tp,LOCATION_DECK+LOCATION_GRAVE,0,ct,ct,nil,e,tp,tp)
-    if #g>0 then
-        for tc in aux.Next(g) do
-            -- choose field owner for summon
-            local sel = Duel.SelectOption(tp,"Your field","Opponent's field")
-            local fp = (sel==0) and tp or (1-tp)
-            if Duel.GetLocationCount(fp,LOCATION_MZONE)>0 then
-                Duel.SpecialSummonStep(tc,0,tp,fp,false,false,POS_FACEUP)
-            end
-        end
-        Duel.SpecialSummonComplete()
-    end
 
     -- Lock to Fish only
     local e1=Effect.CreateEffect(e:GetHandler())
