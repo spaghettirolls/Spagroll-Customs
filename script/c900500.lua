@@ -48,15 +48,6 @@ function s.initial_effect(c)
     -----------------------------
     -- Quick Effect: Special Summon Fish
     -----------------------------
-    local e4=Effect.CreateEffect(c)
-    e4:SetDescription(aux.Stringid(id,1))
-    e4:SetCategory(CATEGORY_SPECIAL_SUMMON)
-    e4:SetType(EFFECT_TYPE_QUICK_O)
-    e4:SetRange(LOCATION_MZONE)
-    e4:SetCountLimit(1,{id,1})
-    e4:SetTarget(s.fish_tg)
-    e4:SetOperation(s.fish_op)
-    c:RegisterEffect(e4)
 
     -----------------------------
     -- End Phase: Recycle & Summon Fish
