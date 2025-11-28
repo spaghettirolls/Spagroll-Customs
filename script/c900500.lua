@@ -2,7 +2,6 @@
 --scripted by beanbag
 
 local s,id=GetID()
-
 function s.initial_effect(c)
     -----------------------------
     -- Always treated as "The Legendary Fisherman"
