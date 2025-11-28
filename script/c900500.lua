@@ -72,60 +72,23 @@ end
 function s.umifilter(c)
 	return c:IsCode(22702055) and c:IsFieldSpell()
 end
------------------------------------
--- 1st Effect: Place Umi & Special Summon this card from hand
------------------------------------
 function s.umitarget(e,tp,eg,ep,ev,re,r,rp,chk)
-    local c=e:GetHandler()
-    if chk==0 then
-        local can1 = Duel.GetLocationCount(tp,LOCATION_FZONE)>0
-        local can2 = Duel.GetLocationCount(1-tp,LOCATION_FZONE)>0
-        return (can1 or can2)
-            and Duel.IsExistingMatchingCard(s.umifilter,tp,LOCATION_HAND+LOCATION_DECK+LOCATION_GRAVE,0,1,nil)
-            and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
-    end
+	if chk==0 then
+		return Duel.GetLocationCount(tp,LOCATION_SZONE)>0
+			and e:GetHandler():IsCanBeSpecialSummoned(e,0,tp,true,false)
+	end
 end
-
 function s.umiop(e,tp,eg,ep,ev,re,r,rp)
-    local c=e:GetHandler()
-
-    -- Pick Umi
-    local g=Duel.SelectMatchingCard(tp,s.umifilter,tp,LOCATION_HAND+LOCATION_DECK+LOCATION_GRAVE,0,1,1,nil)
-    if #g==0 then return end
-    local umi=g:GetFirst()
-
-    ------------------------------------------------------
-    -- CHOOSE FIELD ZONE CORRECTLY
-    ------------------------------------------------------
-    local fp=nil
-    local p_can = Duel.GetLocationCount(tp,LOCATION_FZONE)>0
-    local o_can = Duel.GetLocationCount(1-tp,LOCATION_FZONE)>0
-
-    if p_can and o_can then
-        -- Ask the player: 0 = Your field, 1 = Opponent field
-        local sel = Duel.SelectOption(tp, "Place on your field", "Place on opponent's field")
-        if sel==0 then
-            fp = tp
-        else
-            fp = 1-tp
-        end
-    elseif p_can then
-        fp = tp
-    else
-        fp = 1-tp
-    end
-
-    ------------------------------------------------------
-    -- Place Umi to the chosen player's Field Zone
-    ------------------------------------------------------
-    Duel.MoveToField(umi,tp,fp,LOCATION_FZONE,POS_FACEUP,true)
-
-    ------------------------------------------------------
-    -- Special Summon this card
-    ------------------------------------------------------
-    if c:IsRelateToEffect(e) then
-        Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)
-    end
+	local c=e:GetHandler()
+	--Place Umi from hand, Deck, or GY
+	local g=Duel.SelectMatchingCard(tp,s.umifilter,tp,LOCATION_HAND+LOCATION_DECK+LOCATION_GRAVE,0,1,1,nil)
+	if #g>0 then
+		Duel.MoveToField(g:GetFirst(),tp,1-tp,LOCATION_FZONE,POS_FACEUP,true)
+	end
+	--Special Summon this card
+	if c:IsRelateToEffect(e) then
+		Duel.SpecialSummon(c,0,tp,tp,true,false,POS_FACEUP)
+	end
 end
 
 -----------------------------------
