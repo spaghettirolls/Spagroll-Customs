@@ -1,6 +1,7 @@
 --Charybdis of the Deepest Blue
 local s,id=GetID()
 function s.initial_effect(c)
+    c:SetUniqueOnField(1,0,id)
     --Cannot destroy other Fish monsters by battle
     local e1=Effect.CreateEffect(c)
     e1:SetType(EFFECT_TYPE_FIELD)
@@ -10,7 +11,6 @@ function s.initial_effect(c)
     e1:SetTarget(s.indtg)
     e1:SetValue(1)
     c:RegisterEffect(e1)
-    
     --Destroy 1 Fish monster, then optionally 1 other card
     local e2=Effect.CreateEffect(c)
     e2:SetDescription(aux.Stringid(id,0))
@@ -21,7 +21,6 @@ function s.initial_effect(c)
     e2:SetTarget(s.destg)
     e2:SetOperation(s.desop)
     c:RegisterEffect(e2)
-    
     --Special Summon Fish with higher Level when destroyed
     local e3=Effect.CreateEffect(c)
     e3:SetDescription(aux.Stringid(id,1))
@@ -33,15 +32,6 @@ function s.initial_effect(c)
     e3:SetTarget(s.sptg)
     e3:SetOperation(s.spop)
     c:RegisterEffect(e3)
-    
-    --Limit to 1 on field
-    local e4=Effect.CreateEffect(c)
-    e4:SetType(EFFECT_TYPE_SINGLE)
-    e4:SetCode(EFFECT_CANNOT_BE_DUPLICATE)
-    e4:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
-    e4:SetRange(LOCATION_MZONE)
-    e4:SetValue(1)
-    c:RegisterEffect(e4)
 end
 
 --e1: Indestructible battle effect target
