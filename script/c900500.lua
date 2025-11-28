@@ -22,6 +22,33 @@ function s.initial_effect(c)
     e2:SetTarget(s.msptg)
     e2:SetOperation(s.mspop)
     c:RegisterEffect(e2)
+    local e3=Effect.CreateEffect(c)
+    e3:SetDescription(aux.Stringid(id,0))
+    e3:SetCategory(CATEGORY_TOHAND)
+    e3:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
+    e3:SetCode(EVENT_PHASE+PHASE_END)
+    e3:SetRange(LOCATION_MZONE)
+    e3:SetCountLimit(1,{id,2})
+    e3:SetTarget(s.thtg)
+    e3:SetOperation(s.thop)
+    c:RegisterEffect(e3)
+    --Cannot be targeted for attacks or by opponent's card effects while "Umi" is on the field
+    local e4=Effect.CreateEffect(c)
+    e4:SetType(EFFECT_TYPE_SINGLE)
+    e4:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+    e4:SetRange(LOCATION_MZONE)
+    e4:SetCode(EFFECT_CANNOT_BE_BATTLE_TARGET)
+    e4:SetCondition(s.atkcon)
+    e4:SetValue(aux.imval1) -- cannot be chosen as attack target
+    c:RegisterEffect(e4)
+    local e5=Effect.CreateEffect(c)
+    e5:SetType(EFFECT_TYPE_SINGLE)
+    e5:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+    e5:SetRange(LOCATION_MZONE)
+    e5:SetCode(EFFECT_CANNOT_BE_EFFECT_TARGET)
+    e5:SetCondition(s.atkcon)
+    e5:SetValue(aux.tgoval) -- cannot be targeted by effects
+    c:RegisterEffect(e5)
 end
 s.listed_names={CARD_UMI}
 
@@ -136,4 +163,34 @@ end
 --Special summon limit
 function s.splimit(e,c)
     return not c:IsRace(RACE_FISH)
+end
+
+
+-- THIRD EFFECT--
+
+--Filter: Fish monsters in GY or banished
+function s.thfilter(c)
+    return c:IsRace(RACE_FISH) and c:IsAbleToHand()
+end
+
+--Target function with Necrovalley protection
+function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
+    if chk==0 then 
+        return Duel.IsExistingMatchingCard(aux.NecroValleyFilter(s.thfilter),tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,nil)
+    end
+    Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_GRAVE+LOCATION_REMOVED)
+end
+
+--Operation function with Necrovalley protection
+function s.thop(e,tp,eg,ep,ev,re,r,rp)
+    Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+    local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(s.thfilter),tp,LOCATION_GRAVE+LOCATION_REMOVED,0,1,1,nil)
+    if #g>0 then
+        Duel.SendtoHand(g,nil,REASON_EFFECT)
+        Duel.ConfirmCards(1-tp,g)
+    end
+end
+--Condition: "Umi" is on the field
+function s.atkcon(e)
+    return Duel.IsEnvironment(22702055)
 end
