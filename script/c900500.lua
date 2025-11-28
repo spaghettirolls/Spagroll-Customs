@@ -23,6 +23,7 @@ function s.initial_effect(c)
     e2:SetOperation(s.mspop)
     c:RegisterEffect(e2)
 end
+s.listed_names={CARD_UMI}
 
 -- FIRST EFFECT --
 
