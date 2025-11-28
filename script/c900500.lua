@@ -109,7 +109,6 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp)
 			Duel.MoveToField(tc,tp,tp,LOCATION_FZONE,POS_FACEUP,true)
 		end
 	end
-end
 
     -- Lock to Fish only
     local e1=Effect.CreateEffect(e:GetHandler())
