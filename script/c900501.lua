@@ -3,12 +3,13 @@ local s,id=GetID()
 function s.initial_effect(c)
     c:SetUniqueOnField(1,0,id)
     --Cannot destroy other Fish monsters by battle
-    local e1=Effect.CreateEffect(c)
+     local e1=Effect.CreateEffect(c)
     e1:SetType(EFFECT_TYPE_FIELD)
     e1:SetCode(EFFECT_INDESTRUCTABLE_BATTLE)
     e1:SetRange(LOCATION_MZONE)
     e1:SetTargetRange(LOCATION_MZONE,0)
-    e1:SetTarget(s.indtg)
+    e1:SetCondition(s.umicon)
+    e1:SetTarget(s.indesfilter)
     e1:SetValue(1)
     c:RegisterEffect(e1)
     --Destroy 1 Fish monster, then optionally 1 other card
@@ -34,12 +35,15 @@ function s.initial_effect(c)
     c:RegisterEffect(e3)
 end
 
---e1: Indestructible battle effect target
-function s.indtg(e,c)
-    return c:IsRace(RACE_FISH) and c~=e:GetHandler()
+function s.umicon(e)
+    return Duel.IsEnvironment(22702055) 
 end
 
---e2: Destroy Fish and optionally 1 other card
+-- Target: other Fish monsters you control
+function s.indesfilter(e,c)
+    return c:IsRace(RACE_FISH) and not c~=e:GetHandler()
+end
+--Destroy Fish and optionally 1 other card
 function s.filter(c)
     return c:IsFaceup() and c:IsRace(RACE_FISH)
 end
@@ -86,7 +90,9 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp)
     if #g>0 then
         Duel.SpecialSummon(g,0,tp,tp,false,false,POS_FACEUP)
         --Restriction: only Fish monsters for the rest of the turn
+
         local e1=Effect.CreateEffect(e:GetHandler())
+        e1:SetDescription(aux.Stringid(id,3))
         e1:SetType(EFFECT_TYPE_FIELD)
         e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
         e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
