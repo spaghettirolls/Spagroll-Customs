@@ -92,7 +92,7 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp)
         --Restriction: only Fish monsters for the rest of the turn
 
         local e1=Effect.CreateEffect(e:GetHandler())
-        e1:SetDescription(aux.Stringid(id,3))
+        e1:SetDescription(aux.Stringid(id,5))
         e1:SetType(EFFECT_TYPE_FIELD)
         e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
         e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
