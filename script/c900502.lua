@@ -1,28 +1,32 @@
 local s,id=GetID()
 function s.initial_effect(c)
     c:SetUniqueOnField(1,0,id)
+
     -- Prevent activation of monster effects in GY (except original-type Fish)
     local e1=Effect.CreateEffect(c)
     e1:SetType(EFFECT_TYPE_FIELD)
     e1:SetCode(EFFECT_CANNOT_ACTIVATE)
     e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
-    e1:SetRange(LOCATION_MZONE)          -- apply while this Field Spell is face-up
-    e1:SetTargetRange(1,1)              -- affects both players
+    e1:SetRange(LOCATION_MZONE)
+    e1:SetTargetRange(1,1)
     e1:SetValue(s.aclimit)
     c:RegisterEffect(e1)
+
+    -- Extra attack if Umi is on the field
     local e2=Effect.CreateEffect(c)
     e2:SetType(EFFECT_TYPE_SINGLE)
     e2:SetCode(EFFECT_EXTRA_ATTACK)
-    e2:SetCondition(function(e)
-        return Duel.IsEnvironment(CARD_UMI)
-    end)
+    e2:SetCondition(function(e) return Duel.IsEnvironment(CARD_UMI) end)
     e2:SetValue(1)
     c:RegisterEffect(e2)
+
+    -- Destroy this card; Special Summon 2 Level 4 or lower Fish monsters (1 from hand + 1 from deck)
     local e3=Effect.CreateEffect(c)
     e3:SetDescription(aux.Stringid(id,0))
     e3:SetCategory(CATEGORY_DESTROY+CATEGORY_SPECIAL_SUMMON)
     e3:SetType(EFFECT_TYPE_IGNITION)
     e3:SetRange(LOCATION_MZONE)
+    e3:SetCountLimit(1,{id,1})
     e3:SetCost(s.cost)
     e3:SetTarget(s.target)
     e3:SetOperation(s.operation)
@@ -36,9 +40,10 @@ function s.cost(e,tp,eg,ep,ev,re,r,rp,chk)
     Duel.Destroy(c,REASON_COST)
 end
 
--- filter: Level 4 Fish that can be Special Summoned
+-- filter: Level 4 or lower Fish that can be Special Summoned
 function s.spfilter(c,e,tp)
-    return c:IsRace(RACE_FISH) and c:IsLevelBelow(4) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+    return c:IsRace(RACE_FISH) and c:IsLevelBelow(4)
+        and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
 
 function s.target(e,tp,eg,ep,ev,re,r,rp,chk)
@@ -66,9 +71,9 @@ function s.operation(e,tp,eg,ep,ev,re,r,rp)
     g:Merge(g2)
     Duel.SpecialSummon(g,0,tp,tp,false,false,POS_FACEUP)
 
-    -- Fish-only summon restriction + visible hint message
+    -- Fish-only Special Summons restriction until End Phase (with hint)
     local e1=Effect.CreateEffect(e:GetHandler())
-    e1:SetDescription(aux.Stringid(id,1)) -- Add message text from string table index 1
+    e1:SetDescription(aux.Stringid(id,1))
     e1:SetType(EFFECT_TYPE_FIELD)
     e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_CLIENT_HINT+EFFECT_FLAG_OATH)
     e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
@@ -82,13 +87,14 @@ function s.splimit(e,c,sump,sumtype,sumpos,targetp,se)
     return not c:IsRace(RACE_FISH)
 end
 
+-- Activation limit function
 function s.aclimit(e,re,tp)
     local rc=re:GetHandler()
-    -- only care about monster effects activated from the Graveyard
+    -- only care about monster effects activated from the GY
     if not re:IsActiveType(TYPE_MONSTER) then return false end
     if not rc:IsLocation(LOCATION_GRAVE) then return false end
-    -- allow if the monster's ORIGINAL type includes Fish
-    if rc:IsOriginalType(TYPE_FISH) then return false end
-    -- otherwise block the activation
+    -- allow activation if the monster is originally Fish
+    if rc:IsOriginalRace(RACE_FISH) then return false end
+    -- otherwise block
     return true
 end
