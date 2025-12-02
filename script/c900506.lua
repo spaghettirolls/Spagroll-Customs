@@ -39,7 +39,7 @@ function s.initial_effect(c)
     e3:SetOperation(s.thop)
     c:RegisterEffect(e3)
 end
-
+s.listed_names={CARD_UMI}
 --Filter for disabling opponent's Fish monsters
 function s.distg(e,c)
     return c:IsRace(RACE_FISH) and Duel.IsExistingMatchingCard(aux.FilterFaceupFunction(Card.IsCode,22702055),e:GetHandlerPlayer(),LOCATION_ONFIELD,0,1,nil)
