@@ -32,7 +32,7 @@ function s.initial_effect(c)
     e3:SetOperation(s.operation)
     c:RegisterEffect(e3)
 end
-
+s.listed_names={CARD_UMI}
 -- cost: destroy this card
 function s.cost(e,tp,eg,ep,ev,re,r,rp,chk)
     local c=e:GetHandler()

@@ -46,7 +46,7 @@ function s.initial_effect(c)
     -- Can only control 1
     c:SetUniqueOnField(1,0,id)
 end
-
+s.listed_names={CARD_UMI}
 ---------------------------------------
 -- ATK loss (fixed)
 -- While "Umi" (or a treated-as-Umi card) is active this card loses 1000 ATK per Fish your opponent controls.
