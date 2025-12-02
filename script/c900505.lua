@@ -66,7 +66,7 @@ end
 s.listed_names={CARD_UMI}
 --Link material filter
 function s.matfilter(c,lc,sumtype,tp)
-    return c:IsType(TYPE_MONSTER) and (c:IsRace(RACE_FISH) or c:IsAttribute(ATTRIBUTE_WATER))
+    return c:IsType(TYPE_MONSTER) and (c:IsRace(RACE_FISH) or c:IsAttribute(ATTRIBUTE_WATER)) and not c:IsType(TYPE_LINK)
 end
 
 --Set "Umi" condition
