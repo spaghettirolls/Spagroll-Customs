@@ -4,6 +4,25 @@
 local s,id=GetID()
 function s.initial_effect(c)
 	c:EnableReviveLimit()
+	-- register tribute as cost
+	local e0=Effect.CreateEffect(c)
+	e0:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
+	e0:SetCode(EVENT_RELEASE)
+	e0:SetCountLimit(1,{id,2})
+	e0:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
+	e0:SetOperation(s.necro_reg)
+	c:RegisterEffect(e0)
+	-- standby phase trigger
+	local e00=Effect.CreateEffect(c)
+	e00:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
+	e00:SetCode(EVENT_PHASE+PHASE_STANDBY)
+	e00:SetRange(LOCATION_GRAVE)
+	e00:SetProperty(EFFECT_FLAG_DELAY)
+	e00:SetCountLimit(1,{id,3})
+	e00:SetCondition(s.necro_con)
+	e00:SetTarget(s.necro_tg)
+	e00:SetOperation(s.necro_op)
+	c:RegisterEffect(e00)
 	--Cannot Special Summon
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
@@ -29,17 +48,10 @@ function s.initial_effect(c)
 	e3:SetRange(LOCATION_MZONE)
 	e3:SetCode(EVENT_FREE_CHAIN)
 	e3:SetCountLimit(1,{id,1})
-	e3:SetCost(s.cost)
+	e3:SetCost(Cost.AND(Cost.SelfTribute,s.cost))
 	e3:SetTarget(s.addtg)
 	e3:SetOperation(s.addop)
 	c:RegisterEffect(e3)
-	local e4=Effect.CreateEffect(c)
-	e4:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
-	e4:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
-	e4:SetCode(EVENT_TO_GRAVE)
-	e4:SetCountLimit(1,{id,2})
-	e4:SetOperation(s.regop)
-	c:RegisterEffect(e4)
 end
 
 function s.spconfilter(c)
@@ -90,10 +102,13 @@ function s.splimit(e,c,sump,sumtype,sumpos,targetp)
 	return c:IsLocation(LOCATION_EXTRA)
 end
 
+function s.tribcostfilter(c)
+	return c:IsSetCard(0x238C) and c:IsMonster() and c:IsLocation(LOCATION_HAND)
+end
 function s.cost(e,tp,eg,ep,ev,re,r,rp,chk)
-    if chk==0 then return e:GetHandler():IsReleasable() and Duel.IsExistingMatchingCard(Card.IsDiscardable,tp,LOCATION_HAND,0,1,nil) end
-    Duel.Release(e:GetHandler(),REASON_COST)
-    Duel.DiscardHand(tp,Card.IsDiscardable,1,1,REASON_COST+REASON_DISCARD)
+	if chk==0 then return Duel.CheckReleaseGroupCost(tp,s.tribcostfilter,1,true,nil,nil,0x238C) end
+	local g=Duel.SelectReleaseGroupCost(tp,s.tribcostfilter,1,1,true,nil,nil,0x238C)
+	Duel.Release(g,REASON_COST)
 end
 function s.addfilter(c)
 	return c:IsSetCard(0x238C) and c:IsAbleToHand() and not c:IsCode(id)
@@ -110,24 +125,6 @@ function s.addop(e,tp,eg,ep,ev,re,r,rp)
 		if #thg>0 then
 			Duel.SendtoHand(thg,nil,REASON_EFFECT)
 			Duel.ConfirmCards(1-tp,thg)
-	end
-end
-
-function s.regop(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
-	if c:IsPreviousControler(tp) and c:IsPreviousLocation(LOCATION_ONFIELD) then
-		local e1=Effect.CreateEffect(c)
-		e1:SetDescription(aux.Stringid(id,0))
-		e1:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
-		e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
-		e1:SetCode(EVENT_PHASE+PHASE_END)
-		e1:SetCountLimit(1)
-		e1:SetRange(LOCATION_GRAVE)
-		e1:SetCost(s.thcost)
-		e1:SetTarget(s.thtg)
-		e1:SetOperation(s.thop)
-		e1:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END)
-		c:RegisterEffect(e1)
 	end
 end
 
@@ -150,4 +147,59 @@ function s.thop(e,tp,eg,ep,ev,re,r,rp)
 		Duel.SendtoHand(c,nil,REASON_EFFECT)
 		Duel.ConfirmCards(1-tp,c)
 	end
+end
+
+-- Standby Effects
+function s.necro_reg(e,tp,eg,ep,ev,re,r,rp)
+    local c=e:GetHandler()
+    if not re or not re:IsActivated() then return end
+    if (r&REASON_COST)==0 then return end
+    if not c:IsPreviousLocation(LOCATION_HAND+LOCATION_MZONE) then return end
+    c:RegisterFlagEffect(id,RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_STANDBY,0,2,Duel.GetTurnCount())
+end
+function s.necro_con(e,tp,eg,ep,ev,re,r,rp)
+    local c=e:GetHandler()
+    local tc=c:GetFlagEffectLabel(id)
+    return tc and Duel.GetTurnCount()==tc+1
+end
+function s.necro_tg(e,tp,eg,ep,ev,re,r,rp,chk)
+    local c=e:GetHandler()
+    if chk==0 then
+        return (Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and c:IsCanBeSpecialSummoned(e,0,tp,false,false)) or c:IsAbleToHand()
+    end
+    Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,c,1,0,0)
+    Duel.SetOperationInfo(0,CATEGORY_TOHAND,c,1,0,0)
+    Duel.SetOperationInfo(0,CATEGORY_TOGRAVE,nil,1,tp,LOCATION_DECK)
+end
+function s.necro_op(e,tp,eg,ep,ev,re,r,rp)
+    local c=e:GetHandler()
+    if not c:IsRelateToEffect(e) then return end
+    local ops={}
+    local map={}
+    if Duel.GetLocationCount(tp,LOCATION_MZONE)>0
+        and c:IsCanBeSpecialSummoned(e,0,tp,false,false) then
+        ops[#ops+1]=aux.Stringid(id,0)
+        map[#ops]=1
+    end
+    if c:IsAbleToHand() then
+        ops[#ops+1]=aux.Stringid(id,1)
+        map[#ops]=2
+    end
+    if #ops==0 then return end
+    local sel=map[Duel.SelectOption(tp,table.unpack(ops))+1]
+    if sel==1 then
+        Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)
+    else
+        Duel.SendtoHand(c,nil,REASON_EFFECT)
+        Duel.ConfirmCards(1-tp,c)
+    end
+    Duel.BreakEffect()
+    Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+    local g=Duel.SelectMatchingCard(tp,s.necro_df,tp,LOCATION_DECK,0,1,1,nil,c:GetCode())
+    if #g>0 then
+        Duel.SendtoGrave(g,REASON_EFFECT)
+    end
+end
+function s.necro_df(c,code)
+    return c:IsSetCard(0x238C) and not c:IsCode(code) and c:IsAbleToGrave()
 end
