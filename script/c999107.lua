@@ -1,7 +1,7 @@
 --Curse-Ridden Wasteland of Necroidia
 --Scripted by Beanbag
-
 local s,id=GetID()
+Duel.LoadScript('BeanbagsAux.lua')
 function s.initial_effect(c)
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
@@ -12,7 +12,7 @@ function s.initial_effect(c)
 	e1:SetTarget(s.target)
 	e1:SetOperation(s.activate)
 	c:RegisterEffect(e1)
-local e2=Effect.CreateEffect(c)
+	local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,1))
 	e2:SetCategory(CATEGORY_SPECIAL_SUMMON)
 	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
@@ -24,7 +24,7 @@ local e2=Effect.CreateEffect(c)
 	e2:SetTarget(s.sptg)
 	e2:SetOperation(s.spop)
 	c:RegisterEffect(e2)
-local e3=Effect.CreateEffect(c)
+	local e3=Effect.CreateEffect(c)
 	e3:SetDescription(aux.Stringid(id,1))
 	e3:SetCategory(CATEGORY_TOHAND)
 	e3:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
@@ -58,7 +58,7 @@ function s.spcon(e,tp,eg,ep,ev,re,r,rp)
 	return eg:IsExists(Card.IsControler,1,nil,1-tp)
 end
 function s.spfilter(c,e,tp)
-	return c:IsLevel(8) and c:IsSetCard(0x238C) and c:IsCanBeSpecialSummoned(e,0,tp,true,false)
+	return c:IsLevel(8) and c:IsSetCard(SET_NECROIDIA) and c:IsCanBeSpecialSummoned(e,0,tp,true,false)
 end
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
@@ -74,13 +74,13 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 function s.confilter(c)
-	return c:IsFaceup() and c:IsSetCard(0x238C) and c:IsMonster()
+	return c:IsFaceup() and c:IsSetCard(SET_NECROIDIA) and c:IsMonster()
 end
 function s.regcon(e,tp,eg,ep,ev,re,r,rp)
 	return Duel.IsExistingMatchingCard(s.confilter,tp,LOCATION_MZONE,0,1,nil)
 end
 function s.rgfilter(c)
-	return c:IsSetCard(0x238C) and c:IsMonster() and c:IsAbleToHand()
+	return c:IsSetCard(SET_NECROIDIA) and c:IsMonster() and c:IsAbleToHand()
 end
 function s.regtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(s.rgfilter,tp,LOCATION_GRAVE,0,2,nil) end

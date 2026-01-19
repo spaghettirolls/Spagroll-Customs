@@ -14,7 +14,115 @@ end
 
 --Common Setcards
 SET_POLTI = 0x3D4
-SET_NECROID = 0x238C
+SET_NECROIDIA = 0x238C
+
+--Necroidia Standby Phase Register
+----------------------(handler,cardID,countlimitindex0,countlimitindex1)
+function aux.AddNecroidiaStandby(c,id,ct0,ct1)
+    ct0=ct0 or 0
+    ct1=ct1 or 1
+    local e0=Effect.CreateEffect(c)
+    e0:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
+    e0:SetCode(EVENT_RELEASE)
+    e0:SetCountLimit(1,{id,ct0})
+    e0:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
+    e0:SetOperation(aux.NecroidiaReg)
+    c:RegisterEffect(e0)
+    local e1=Effect.CreateEffect(c)
+    e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
+    e1:SetCode(EVENT_PHASE+PHASE_STANDBY)
+    e1:SetRange(LOCATION_GRAVE)
+    e1:SetProperty(EFFECT_FLAG_DELAY)
+    e1:SetCountLimit(1,{id,ct})
+    e1:SetCondition(aux.NecroidiaCon)
+    e1:SetTarget(aux.NecroidiaTG)
+    e1:SetOperation(aux.NecroidiaOP)
+    c:RegisterEffect(e1)
+end
+function aux.NecroidiaReg(e,tp,eg,ep,ev,re,r,rp)
+    local c=e:GetHandler()
+    if not re or not re:IsActivated() then return end
+    if (r&REASON_COST)==0 and (r&REASON_EFFECT)==0 then return end
+    if not c:IsPreviousLocation(LOCATION_HAND+LOCATION_MZONE) then return end
+    local rc=re:GetHandler()
+    if rc:IsSetCard(SET_NECROIDIA) or (rc:IsRace(RACE_ZOMBIE) and rc:IsType(TYPE_MONSTER)) then
+        c:RegisterFlagEffect(c:GetOriginalCode(),RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_STANDBY,0,2,Duel.GetTurnCount())
+    end
+end
+function aux.NecroidiaCon(e,tp,eg,ep,ev,re,r,rp)
+    local c=e:GetHandler()
+    local tc=c:GetFlagEffectLabel(c:GetOriginalCode())
+    return tc and Duel.GetTurnCount()==tc+1
+end
+function aux.NecroidiaTG(e,tp,eg,ep,ev,re,r,rp,chk)
+    local c=e:GetHandler()
+    if chk==0 then
+        return (Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and c:IsCanBeSpecialSummoned(e,0,tp,false,false))
+            or c:IsAbleToHand()
+    end
+    Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,c,1,0,0)
+    Duel.SetOperationInfo(0,CATEGORY_TOHAND,c,1,0,0)
+    Duel.SetOperationInfo(0,CATEGORY_TOGRAVE,nil,1,tp,LOCATION_DECK)
+end
+function aux.NecroidiaDF(c,code)
+    return c:IsSetCard(SET_NECROIDIA) and not c:IsCode(code) and c:IsAbleToGrave()
+end
+function aux.NecroidiaOP(e,tp,eg,ep,ev,re,r,rp)
+    local c=e:GetHandler()
+    if not c:IsRelateToEffect(e) then return end
+    local ops,map={},{}
+    if Duel.GetLocationCount(tp,LOCATION_MZONE)>0
+        and c:IsCanBeSpecialSummoned(e,0,tp,false,false) then
+        ops[#ops+1]=aux.Stringid(c:GetOriginalCode(),0)
+        map[#ops]=1
+    end
+    if c:IsAbleToHand() then
+        ops[#ops+1]=aux.Stringid(c:GetOriginalCode(),1)
+        map[#ops]=2
+    end
+    if #ops==0 then return end
+    local sel
+    if #ops==1 then
+        sel=map[1]
+    else
+        sel=map[Duel.SelectOption(tp,table.unpack(ops))+1]
+    end
+    if sel==1 then
+        Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)
+    else
+        Duel.SendtoHand(c,nil,REASON_EFFECT)
+        Duel.ConfirmCards(1-tp,c)
+    end
+    Duel.BreakEffect()
+    Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+    local g=Duel.SelectMatchingCard(tp,aux.NecroidiaDF,tp,LOCATION_DECK,0,1,1,nil,c:GetCode())
+    if #g>0 then Duel.SendtoGrave(g,REASON_EFFECT) end
+end
+
+
+--Necroidia Cost Application Aux
+-------------------------(handler,id,description,targetop,operationop,countlimitindex)
+function aux.AddNecroidiaTributeEffect(c,id,desc,tg,op,ct)
+    ct=ct or 2
+    local e=Effect.CreateEffect(c)
+    e:SetDescription(aux.Stringid(id,desc))
+    e:SetType(EFFECT_TYPE_QUICK_O)
+    e:SetRange(LOCATION_MZONE)
+    e:SetCode(EVENT_FREE_CHAIN)
+    e:SetCountLimit(1,{id,ct})
+    e:SetCost(aux.CostWithReplace(Cost.AND(Cost.SelfTribute,aux.NecroidiaCost),CARD_URSARCTIC_BIG_DIPPER))
+    e:SetTarget(tg)
+    e:SetOperation(op)
+    c:RegisterEffect(e)
+end
+function aux.NecroidiaTributeFilter(c)
+    return c:IsRace(RACE_ZOMBIE) and c:IsMonster() and c:IsLocation(LOCATION_HAND) and c:IsReleasable()
+end
+function aux.NecroidiaCost(e,tp,eg,ep,ev,re,r,rp,chk)
+    if chk==0 then return Duel.CheckReleaseGroupCost(tp,aux.NecroidiaTributeFilter,1,true,nil,nil) end
+    local g=Duel.SelectReleaseGroupCost(tp,aux.NecroidiaTributeFilter,1,1,true,nil,nil)
+    Duel.Release(g,REASON_COST)
+end
 
 --Voltaic face-down Pendulum Summon
 function Beanbag.AddFusionSpellProcMST(c,fusfilter,matfilter,extrafil,extraop,gc,stage2,exactcount,value,location,chkf,desc,preselect,nosummoncheck,extratg,mincount,maxcount,sumpos)

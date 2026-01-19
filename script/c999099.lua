@@ -1,10 +1,11 @@
 --Necroidia Dread Magi
 --Scripted by Beanbag
-
 local s,id=GetID()
+Duel.LoadScript('BeanbagsAux.lua')
 function s.initial_effect(c)
 	--activate
 	local e1=Effect.CreateEffect(c)
+    e1:SetDescription(aux.Stringid(id,0))
 	e1:SetCategory(CATEGORY_SPECIAL_SUMMON)
 	e1:SetType(EFFECT_TYPE_ACTIVATE)
 	e1:SetCode(EVENT_FREE_CHAIN)
@@ -41,10 +42,10 @@ function s.setcost1(e,tp,eg,ep,ev,re,r,rp,chk)
     end
     local maxct=math.min(2,ft+fs)
     if chk==0 then
-        return maxct>0 and Duel.CheckReleaseGroupCost(tp,Card.IsSetCard,1,maxct,true,nil,nil,0x238C)
+        return maxct>0 and Duel.CheckReleaseGroupCost(tp,Card.IsSetCard,1,maxct,true,nil,nil,SET_NECROIDIA)
     end
     Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_RELEASE)
-    local g=Duel.SelectReleaseGroupCost(tp,Card.IsSetCard,1,maxct,true,nil,nil,0x238C)
+    local g=Duel.SelectReleaseGroupCost(tp,Card.IsSetCard,1,maxct,true,nil,nil,SET_NECROIDIA)
     local ct=#g
     Duel.Release(g,REASON_COST)
     e:SetLabel(ct)
@@ -53,7 +54,7 @@ end
 
 
 function s.setfilter(c)
-    return c:IsSetCard(0x238C) and c:IsSpellTrap() and c:IsSSetable() and not c:IsCode(id)
+    return c:IsSetCard(SET_NECROIDIA) and c:IsSpellTrap() and c:IsSSetable() and not c:IsCode(id)
 end
 
 function s.target(e,tp,eg,ep,ev,re,r,rp,chk)
@@ -108,13 +109,12 @@ end
 
 
 function s.cfilter(c,ft,tp)
-	return c:IsSetCard(0x238C) and (ft>0 or (c:GetSequence()<5 and c:IsControler(tp))) and (c:IsFaceup() or c:IsControler(tp))
+	return c:IsSetCard(SET_NECROIDIA) and (ft>0 or (c:GetSequence()<5 and c:IsControler(tp))) and (c:IsFaceup() or c:IsControler(tp))
 end
 function s.setcost2(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.CheckReleaseGroupCost(tp,Card.IsSetCard,1,true,nil,e:GetHandler(),0x238C) end
-	local g=Duel.SelectReleaseGroupCost(tp,Card.IsSetCard,1,1,true,nil,e:GetHandler(),0x238C)
+	if chk==0 then return Duel.CheckReleaseGroupCost(tp,Card.IsSetCard,1,true,nil,e:GetHandler(),SET_NECROIDIA) end
+	local g=Duel.SelectReleaseGroupCost(tp,Card.IsSetCard,1,1,true,nil,e:GetHandler(),SET_NECROIDIA)
 	Duel.Release(g,REASON_COST)
-	e:SetLabel(#g)
 end
 function s.setcon(e,tp,eg,ep,ev,re,r,rp)
 	return eg:IsExists(Card.IsControler,1,nil,1-tp)

@@ -1,7 +1,7 @@
 --Necroidia Rotting Bloom
 --Scripted by Beanbag
-
 local s,id=GetID()
+Duel.LoadScript('BeanbagsAux.lua')
 function s.initial_effect(c)
 	--activate
 	local e1=Effect.CreateEffect(c)
@@ -24,10 +24,10 @@ function s.initial_effect(c)
 	c:RegisterEffect(e2)
 end
 function s.spfilter(c,e,tp)
-	return c:IsLevel(8) and c:IsSetCard(0x238C) and c:IsMonster() and c:IsCanBeSpecialSummoned(e,0,tp,true,false)
+	return c:IsLevel(8) and c:IsSetCard(SET_NECROIDIA) and c:IsMonster() and c:IsCanBeSpecialSummoned(e,0,tp,true,false)
 end
 function s.tgfilter(c)
-	return c:IsSetCard(0x238C) and c:IsMonster() and c:IsAbleToGrave()
+	return c:IsSetCard(SET_NECROIDIA) and c:IsMonster() and c:IsAbleToGrave()
 end
 function s.target(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
@@ -39,12 +39,12 @@ function s.activate(e,tp,eg,ep,ev,re,r,rp)
 	if Duel.GetLocationCount(tp,LOCATION_MZONE)<=0 then return end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
 	local g=Duel.SelectMatchingCard(tp,s.spfilter,tp,LOCATION_DECK+LOCATION_GRAVE,0,1,1,nil,e,tp)
-	if #g>0 then
-		Duel.SpecialSummon(g,0,tp,tp,true,false,POS_FACEUP)
-			Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
-	local g=Duel.SelectMatchingCard(tp,s.tgfilter,tp,LOCATION_DECK+LOCATION_GRAVE,0,1,1,nil)
-	if #g>0 then
-		Duel.SendtoGrave(g,REASON_EFFECT)
+	if #g>0 and Duel.SpecialSummon(g,0,tp,tp,true,false,POS_FACEUP)>0 then 
+		Duel.BreakEffect()
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+		local g=Duel.SelectMatchingCard(tp,s.tgfilter,tp,LOCATION_DECK+LOCATION_GRAVE,0,1,1,nil)
+		if #g>0 then
+			Duel.SendtoGrave(g,REASON_EFFECT)
 	    end
     end
 end
@@ -52,8 +52,8 @@ function s.thfilter(c)
 	return c:IsCode(999107) and c:IsAbleToHand()
 end
 function s.thcost(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.CheckReleaseGroupCost(tp,Card.IsSetCard,1,true,nil,nil,0x238C) end
-	local g=Duel.SelectReleaseGroupCost(tp,Card.IsSetCard,1,1,true,nil,nil,0x238C)
+	if chk==0 then return Duel.CheckReleaseGroupCost(tp,Card.IsSetCard,1,true,nil,nil,SET_NECROIDIA) end
+	local g=Duel.SelectReleaseGroupCost(tp,Card.IsSetCard,1,1,true,nil,nil,SET_NECROIDIA)
 	Duel.Release(g,REASON_COST)
 end
 function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
