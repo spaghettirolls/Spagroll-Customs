@@ -14,24 +14,51 @@ function s.initial_effect(c)
 	e1:SetCode(EFFECT_SPSUMMON_PROC)
 	e1:SetRange(LOCATION_HAND+LOCATION_GRAVE)
 	e1:SetCountLimit(1,{id,3})
-	e1:SetCondition(s.spcon)
-	e1:SetTarget(s.sptg)
-	e1:SetOperation(s.spop)
+	e1:SetCondition(s.spproccon)
+	e1:SetTarget(s.spproctg)
+	e1:SetOperation(s.spprocop)
 	c:RegisterEffect(e1)
+	--Register Special Summons from the Extra Deck
+	aux.GlobalCheck(s,function()
+		local ge1=Effect.CreateEffect(c)
+		ge1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+		ge1:SetCode(EVENT_SPSUMMON_SUCCESS)
+		ge1:SetOperation(s.checkop)
+		Duel.RegisterEffect(ge1,0)
+	end)
 end
 
-function s.spconfilter(c)
+function s.checkop(e,tp,eg,ep,ev,re,r,rp)
+	for tc in eg:Iter() do
+		if tc:IsSummonLocation(LOCATION_EXTRA) then
+			local sp=tc:GetSummonPlayer()
+			if sp==tp then
+			Duel.RegisterFlagEffect(sp,id,RESET_PHASE|PHASE_END,0,1)
+			if Duel.HasFlagEffect(sp,id,2) then
+				Duel.RegisterFlagEffect(sp,id+15,RESET_PHASE|PHASE_END,0,2)
+				end
+			end
+		end
+	end
+end
+
+-- Filter for tribute materials
+function s.tdfilter(c)
 	return c:IsSetCard(SET_NECROIDIA) and c:IsMonster() and c:IsAbleToDeckOrExtraAsCost() and not c:IsCode(id)
 end
-function s.spcon(e,c)
-	if c==nil then return true end
-	local tp=e:GetHandlerPlayer()
-	return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
-		and Duel.IsExistingMatchingCard(s.spconfilter,tp,LOCATION_HAND|LOCATION_GRAVE,0,1,c)
+
+-- Summon condition: check space, materials, and counter
+function s.spproccon(e,c)
+    if c==nil then return true end
+    local tp=e:GetHandlerPlayer()
+    local rg=Duel.GetMatchingGroup(s.tdfilter,tp,LOCATION_HAND|LOCATION_GRAVE,0,e:GetHandler())
+    return not Duel.HasFlagEffect(tp,id+15) and Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and aux.SelectUnselectGroup(rg,e,tp,1,1,aux.dncheck,0)
 end
-function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk,c)
-	local rg=Duel.GetMatchingGroup(s.spconfilter,tp,LOCATION_HAND|LOCATION_GRAVE,0,c)
-	local g=aux.SelectUnselectGroup(rg,e,tp,1,1,nil,1,tp,HINTMSG_TODECK,nil,nil,true)
+
+-- Select tribute materials
+function s.spproctg(e,tp,eg,ep,ev,re,r,rp,c)
+	local rg=Duel.GetMatchingGroup(s.tdfilter,tp,LOCATION_HAND|LOCATION_GRAVE,0,e:GetHandler())
+	local g=aux.SelectUnselectGroup(rg,e,tp,1,1,aux.dncheck,1,tp,HINTMSG_TODECK,nil,nil,true)
 	if #g>0 then
 		g:KeepAlive()
 		e:SetLabelObject(g)
@@ -39,36 +66,28 @@ function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk,c)
 	end
 	return false
 end
-function s.spop(e,tp,eg,ep,ev,re,r,rp,c)
+
+-- Perform the tribute and apply summon lock
+function s.spprocop(e,tp,eg,ep,ev,re,r,rp,c)
 	local g=e:GetLabelObject()
 	if not g then return end
-	if g:IsExists(Card.IsLocation,1,nil,LOCATION_HAND) then
-		Duel.ConfirmCards(1-tp,g)
-	else
-		Duel.HintSelection(g)
-	end
+	Duel.HintSelection(g,true)
 	Duel.SendtoDeck(g,nil,SEQ_DECKSHUFFLE,REASON_COST)
 	g:DeleteGroup()
+	-- Apply summon lock with a dynamic condition
 	local e1=Effect.CreateEffect(e:GetHandler())
 	e1:SetType(EFFECT_TYPE_FIELD)
 	e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
 	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_OATH)
 	e1:SetTargetRange(1,0)
-	e1:SetTarget(s.splimit)
+	e1:SetCondition(function(e) local tp=e:GetHandlerPlayer() return Duel.HasFlagEffect(tp,id) end)
+	e1:SetTarget(function(e,c,sump,sumtype,sumpos,targetp,se) return c:IsLocation(LOCATION_EXTRA) end)
 	e1:SetReset(RESET_PHASE+PHASE_END)
 	Duel.RegisterEffect(e1,tp)
-	local e2=Effect.CreateEffect(e:GetHandler())
-	e2:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_CLIENT_HINT)
-	e2:SetDescription(aux.Stringid(id,0))
-	e2:SetReset(RESET_PHASE+PHASE_END)
-	e2:SetTargetRange(1,0)
-	Duel.RegisterEffect(e2,tp)
 end
-function s.splimit(e,c,sump,sumtype,sumpos,targetp)
-	return c:IsLocation(LOCATION_EXTRA)
-end
+
 function s.spfilter(c,e,tp)
-	return c:IsLevel(8) and c:IsSetCard(SET_NECROIDIA) and c:IsCanBeSpecialSummoned(e,0,tp,true,false) and not c:IsCode(id)
+	return c:IsLevel(8) and c:IsSetCard(SET_NECROIDIA) and c:IsCanBeSpecialSummoned(e,0,tp,true,true) and not c:IsCode(id)
 end
 function s.spltg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local ft=Duel.GetLocationCount(tp,LOCATION_MZONE)
@@ -81,7 +100,7 @@ function s.splop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
 	local g=Duel.SelectMatchingCard(tp,s.spfilter,tp,LOCATION_HAND|LOCATION_GRAVE,0,1,1,nil,e,tp)
 	if #g>0 then
-		Duel.SpecialSummon(g,0,tp,tp,true,false,POS_FACEUP)
+		Duel.SpecialSummon(g,0,tp,tp,true,true,POS_FACEUP)
 	end
 end
 function s.thcostfilter(c)

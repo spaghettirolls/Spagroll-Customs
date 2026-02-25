@@ -62,7 +62,7 @@ function s.target(e,tp,eg,ep,ev,re,r,rp,chk)
         local ft=Duel.GetLocationCount(tp,LOCATION_SZONE)
         local fz=0
         if Duel.GetLocationCount(tp,LOCATION_FZONE)>0 then fz=1 end
-        local rg=Duel.GetMatchingGroup(s.setfilter,tp,LOCATION_DECK,0,nil)
+        local rg=Duel.GetMatchingGroup(s.setfilter,tp,LOCATION_DECK|LOCATION_GRAVE,0,nil)
         return (ft+fz)>0 and aux.SelectUnselectGroup(rg,e,tp,1,1,nil,0)
     end
 end
@@ -91,7 +91,7 @@ function s.activate(e,tp,eg,ep,ev,re,r,rp)
     if ct==0 then return end
     local ft=Duel.GetLocationCount(tp,LOCATION_SZONE)
     local fsok=false
-    local g=Duel.GetMatchingGroup(s.setfilter,tp,LOCATION_DECK,0,nil)
+    local g=Duel.GetMatchingGroup(s.setfilter,tp,LOCATION_DECK|LOCATION_GRAVE,0,nil)
     for tc in aux.Next(g) do
         if tc:IsType(TYPE_FIELD) then
             fsok=true
