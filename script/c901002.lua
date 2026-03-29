@@ -60,6 +60,9 @@ end
 --------------------------------------------------
 -- Tribute Special Summon
 --------------------------------------------------
+function s.cfilter(c)
+	return c:IsFaceup() and c:IsSetCard(0x1A0A)
+end
 function s.tgcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.CheckReleaseGroup(tp,s.cfilter,1,nil) end
 	local g=Duel.SelectReleaseGroup(tp,s.cfilter,1,1,nil)
