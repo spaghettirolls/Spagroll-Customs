@@ -35,17 +35,17 @@ function s.initial_effect(c)
     e2x:SetCode(EVENT_SPSUMMON_SUCCESS)
     c:RegisterEffect(e2x)
 
-    --GY Synchro Material (banish, hard OPT)
-    local e3=Effect.CreateEffect(c)
-    e3:SetType(EFFECT_TYPE_FIELD)
-    e3:SetCode(EFFECT_EXTRA_SYNCHRO_MATERIAL)
-    e3:SetRange(LOCATION_GRAVE)
-    e3:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
-    e3:SetTargetRange(1,0)
-    e3:SetCondition(s.matcon)
-    e3:SetValue(1)
-    e3:SetOperation(s.matop)
-    c:RegisterEffect(e3)
+--GY Synchro Material (banish, hard OPT)
+local e3=Effect.CreateEffect(c)
+e3:SetType(EFFECT_TYPE_FIELD)
+e3:SetCode(EFFECT_EXTRA_SYNCHRO_MATERIAL)
+e3:SetRange(LOCATION_GRAVE)
+e3:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+e3:SetTargetRange(1,0)
+e3:SetCondition(s.matcon)
+e3:SetTarget(s.mattg)
+e3:SetOperation(s.matop)
+c:RegisterEffect(e3)
 end
 
 --========================
@@ -113,15 +113,20 @@ end
 --========================
 -- GY SYNCHRO MATERIAL (HARD OPT)
 --========================
+--Only for Psychic/Plant Synchros + hard OPT
 function s.matcon(e,c)
     if c==nil then return false end
-    if Duel.GetFlagEffect(c:GetControler(),id+100)>0 then return false end
     return c:IsType(TYPE_SYNCHRO)
         and (c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT))
 end
 
+function s.mattg(e,c)
+    return c==e:GetHandler()
+end
+
 function s.matop(e,tp,eg,ep,ev,re,r,rp)
     local c=e:GetHandler()
-    Duel.RegisterFlagEffect(tp,id+100,RESET_PHASE+PHASE_END,0,1) -- hard OPT
+    if Duel.GetFlagEffect(tp,id+100)>0 then return end
+    Duel.RegisterFlagEffect(tp,id+100,RESET_PHASE+PHASE_END,0,1)
     Duel.Remove(c,POS_FACEUP,REASON_EFFECT+REASON_MATERIAL+REASON_SYNCHRO)
 end
