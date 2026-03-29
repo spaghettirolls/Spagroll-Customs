@@ -1,5 +1,5 @@
 --Psychic Rose Seed
---Scripted by Beanbag
+--Scripted by ChatGPT (Konami-style)
 local s,id=GetID()
 
 function s.initial_effect(c)
@@ -9,16 +9,6 @@ function s.initial_effect(c)
     e0:SetCode(EFFECT_ADD_RACE)
     e0:SetValue(RACE_PSYCHIC)
     c:RegisterEffect(e0)
-
-    --Track non-Psychic/Plant Special Summons
-    if not s.global_check then
-        s.global_check=true
-        local ge=Effect.CreateEffect(c)
-        ge:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
-        ge:SetCode(EVENT_SPSUMMON_SUCCESS)
-        ge:SetOperation(s.checkop)
-        Duel.RegisterEffect(ge,0)
-    end
 
     --Quick Effect: Discard to SS
     local e1=Effect.CreateEffect(c)
@@ -61,48 +51,43 @@ function s.initial_effect(c)
     c:RegisterEffect(e3)
 end
 
---Track illegal summons
-function s.checkop(e,tp,eg,ep,ev,re,r,rp)
-    for tc in aux.Next(eg) do
-        local p=tc:GetSummonPlayer()
-        if not (tc:IsRace(RACE_PSYCHIC) or tc:IsRace(RACE_PLANT)) then
-            Duel.RegisterFlagEffect(p,id,RESET_PHASE+PHASE_END,0,1)
-        end
-    end
-end
-
---Activation condition (no illegal summons this turn)
-function s.actcon(e,tp,eg,ep,ev,re,r,rp)
-    return Duel.GetFlagEffect(tp,id)==0
-end
-
---Summon restriction
-function s.splimit(e,c,sump,sumtype,sumpos,targetp,se)
+--========================
+-- SUMMON LOCK CONDITION
+--========================
+function s.cfilter(c)
     return not (c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT))
 end
 
-function s.applylock(tp)
-    --Mark that effect was used
-    Duel.RegisterFlagEffect(tp,id,RESET_PHASE+PHASE_END,0,1)
+function s.actcon(e,tp,eg,ep,ev,re,r,rp)
+    return not Duel.IsPlayerAffectedByEffect(tp,id)
+        and Duel.GetCustomActivityCount(id,tp,ACTIVITY_SPSUMMON)==0
+end
 
-    --Apply summon restriction
-    local e1=Effect.CreateEffect(nil)
+--Register activity counter (Konami standard)
+Duel.AddCustomActivityCounter(id,ACTIVITY_SPSUMMON,function(c)
+    return c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT)
+end)
+
+--Apply OATH lock
+function s.applylock(e,tp)
+    local e1=Effect.CreateEffect(e:GetHandler())
     e1:SetType(EFFECT_TYPE_FIELD)
-    e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+    e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_OATH)
     e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
     e1:SetTargetRange(1,0)
-    e1:SetTarget(s.splimit)
+    e1:SetTarget(function(e,c) return not (c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT)) end)
     e1:SetReset(RESET_PHASE+PHASE_END)
     Duel.RegisterEffect(e1,tp)
 end
 
---Discard cost
+--========================
+-- EFFECT 1
+--========================
 function s.spcost(e,tp,eg,ep,ev,re,r,rp,chk)
     if chk==0 then return e:GetHandler():IsDiscardable() end
     Duel.SendtoGrave(e:GetHandler(),REASON_COST+REASON_DISCARD)
 end
 
---SS filter
 function s.spfilter(c,e,tp)
     return c:IsSetCard(0x1A0A) and not c:IsCode(id)
         and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
@@ -123,10 +108,12 @@ function s.spop(e,tp,eg,ep,ev,re,r,rp)
     if #g>0 then
         Duel.SpecialSummon(g,0,tp,tp,false,false,POS_FACEUP)
     end
-    s.applylock(tp)
+    s.applylock(e,tp)
 end
 
---Send to GY filter
+--========================
+-- EFFECT 2
+--========================
 function s.tgfilter(c)
     return c:IsSetCard(0x1A0A) and not c:IsCode(id) and c:IsAbleToGrave()
 end
@@ -144,10 +131,12 @@ function s.tgop(e,tp,eg,ep,ev,re,r,rp)
     if #g>0 then
         Duel.SendtoGrave(g,REASON_EFFECT)
     end
-    s.applylock(tp)
+    s.applylock(e,tp)
 end
 
---Synchro trigger
+--========================
+-- EFFECT 3 (GY REVIVE)
+--========================
 function s.revfilter(c,tp)
     return c:IsSummonPlayer(tp)
         and c:IsType(TYPE_SYNCHRO)
@@ -177,5 +166,5 @@ function s.revop(e,tp,eg,ep,ev,re,r,rp)
         e1:SetValue(LOCATION_REMOVED)
         c:RegisterEffect(e1)
     end
-    s.applylock(tp)
+    s.applylock(e,tp)
 end
