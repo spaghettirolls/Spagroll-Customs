@@ -36,18 +36,15 @@ function s.initial_effect(c)
     c:RegisterEffect(e2x)
 
 --GY Synchro Material (banish, hard OPT)
-local e3=Effect.CreateEffect(c)
-e3:SetType(EFFECT_TYPE_FIELD)
-e3:SetCode(EFFECT_EXTRA_SYNCHRO_MATERIAL)
-e3:SetRange(LOCATION_GRAVE)
-e3:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
-e3:SetTargetRange(1,0)
-e3:SetCondition(s.matcon)
-e3:SetTarget(s.mattg)
-e3:SetOperation(s.matop)
-c:RegisterEffect(e3)
+	local e3=Effect.CreateEffect(c)
+	e3:SetType(EFFECT_TYPE_SINGLE)
+	e3:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e3:SetCode(EFFECT_SYNCHRO_MAT_FROM_HAND)
+	e3:SetRange(LOCATION_GRAVE)
+	e3:SetCountLimit(1,{id,1})
+	e3:SetValue(s.synval)
+	c:RegisterEffect(e3)
 end
-
 --========================
 -- KONAMI SUMMON LOCK CORE
 --========================
@@ -110,23 +107,6 @@ function s.thop(e,tp,eg,ep,ev,re,r,rp)
     s.applylock(e,tp)
 end
 
---========================
--- GY SYNCHRO MATERIAL (HARD OPT)
---========================
---Only for Psychic/Plant Synchros + hard OPT
-function s.matcon(e,c)
-    if c==nil then return false end
-    return c:IsType(TYPE_SYNCHRO)
-        and (c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT))
-end
-
-function s.mattg(e,c)
-    return c==e:GetHandler()
-end
-
-function s.matop(e,tp,eg,ep,ev,re,r,rp)
-    local c=e:GetHandler()
-    if Duel.GetFlagEffect(tp,id+100)>0 then return end
-    Duel.RegisterFlagEffect(tp,id+100,RESET_PHASE+PHASE_END,0,1)
-    Duel.Remove(c,POS_FACEUP,REASON_EFFECT+REASON_MATERIAL+REASON_SYNCHRO)
+function s.synval(e,mc,sc) --this effect, this card and the monster to be summoned
+	return sc:IsType(TYPE_SYNCHRO) and sc:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT)
 end
