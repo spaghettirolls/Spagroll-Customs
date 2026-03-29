@@ -105,5 +105,5 @@ function s.thop(e,tp,eg,ep,ev,re,r,rp)
 end
 
 function s.synval(e,mc,sc) --this effect, this card and the monster to be summoned
-	return sc:IsType(TYPE_SYNCHRO) and sc:IsRace(RACE_PSYCHIC+RACE_PLANT)
+	return sc:IsType(TYPE_SYNCHRO) and sc:IsRace(RACE_PSYCHIC) or (sc:IsRace(RACE_PLANT))
 end
