@@ -72,11 +72,11 @@ end
 --========================
 -- SPECIAL SUMMON CONDITION
 --========================
-function s.cfilter(c)
+function s.csfilter(c)
     return c:IsFacedown() or not (c:IsRace(RACE_PLANT) or c:IsRace(RACE_PSYCHIC))
 end
 function s.spcon(e,tp,eg,ep,ev,re,r,rp)
-    return not Duel.IsExistingMatchingCard(s.cfilter,tp,LOCATION_MZONE,0,1,nil)
+    return not Duel.IsExistingMatchingCard(s.csfilter,tp,LOCATION_MZONE,0,1,nil)
 end
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
     local c=e:GetHandler()
