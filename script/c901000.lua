@@ -1,5 +1,5 @@
 --Psychic Rose Seed
---Scripted by ChatGPT (Konami-style)
+--Scripted by Beanbag
 local s,id=GetID()
 
 function s.initial_effect(c)
