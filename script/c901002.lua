@@ -69,7 +69,7 @@ function s.tgcost(e,tp,eg,ep,ev,re,r,rp,chk)
 end
 
 function s.spfilter2(c,e,tp)
-	return c:IsSetCard(0x1A0A) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+	return c:IsCode(901002) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
 end
 
 function s.tgtg(e,tp,eg,ep,ev,re,r,rp,chk)
