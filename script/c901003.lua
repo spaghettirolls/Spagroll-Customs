@@ -9,15 +9,6 @@ function s.initial_effect(c)
     e0:SetCode(EFFECT_ADD_RACE)
     e0:SetValue(RACE_PSYCHIC)
     c:RegisterEffect(e0)
-	local e1=Effect.CreateEffect(c)
-	e1:SetType(EFFECT_TYPE_SINGLE)
-	e1:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
-	e1:SetCode(EFFECT_SYNCHRO_MAT_FROM_HAND)
-	e1:SetRange(LOCATION_HAND)
-	e1:SetCountLimit(1,{id,0})
-	e1:SetValue(s.synval)
-	c:RegisterEffect(e1)
-    function s.initial_effect(c)
     --Ignition effect: reduce level and search
     local e2=Effect.CreateEffect(c)
     e2:SetDescription(aux.Stringid(id,0))
@@ -28,8 +19,16 @@ function s.initial_effect(c)
     e2:SetTarget(s.lvtg)
     e2:SetOperation(s.lvop)
     c:RegisterEffect(e2)
+    local e5=Effect.CreateEffect(c)
+    e5:SetType(EFFECT_TYPE_SINGLE)
+    e5:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+    e5:SetCode(EFFECT_SYNCHRO_MAT_FROM_HAND)
+    e5:SetRange(LOCATION_HAND)
+    e5:SetCountLimit(1,{id,3})
+    e5:SetValue(s.synval)
+    c:RegisterEffect(e5)
 end
-end
+
 --========================
 -- KONAMI SUMMON LOCK CORE
 --========================
@@ -105,5 +104,5 @@ function s.lvop(e,tp,eg,ep,ev,re,r,rp)
     end
 end
 function s.synval(e,mc,sc) --this effect, this card and the monster to be summoned
-	return sc:IsType(TYPE_SYNCHRO) and sc:IsRace(RACE_PSYCHIC) or (sc:IsRace(RACE_PLANT))
+    return sc:IsType(TYPE_SYNCHRO) and sc:IsRace(RACE_PSYCHIC) or (sc:IsRace(RACE_PLANT))
 end

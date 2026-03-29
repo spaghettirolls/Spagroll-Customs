@@ -2,17 +2,15 @@
 local s,id=GetID()
 function s.initial_effect(c)
 	--This card is also treated as a Psychic monster
-	local e0=Effect.CreateEffect(c)
-	e0:SetType(EFFECT_TYPE_SINGLE)
-	e0:SetCode(EFFECT_ADD_SETCODE)
-	e0:SetValue(0x5f1)
-	c:RegisterEffect(e0)
-
+    local e0=Effect.CreateEffect(c)
+    e0:SetType(EFFECT_TYPE_SINGLE)
+    e0:SetCode(EFFECT_ADD_RACE)
+    e0:SetValue(RACE_PSYCHIC)
+    c:RegisterEffect(e0)
 	--Custom Activity Counter (Psychic/Plant only)
 	Duel.AddCustomActivityCounter(id,ACTIVITY_SPSUMMON,function(c)
 		return c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT)
 	end)
-
 	--Special Summon from hand
 	local e1=Effect.CreateEffect(c)
 	e1:SetType(EFFECT_TYPE_FIELD)
