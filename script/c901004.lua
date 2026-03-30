@@ -167,9 +167,9 @@ end
 -- PROTECTION
 --------------------------------------------------
 function s.indtg(e,c)
-    return c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT)
+    return c:IsControler(e:GetHandlerPlayer()) 
+        and (c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT))
 end
-
 --------------------------------------------------
 -- GY ADD
 --------------------------------------------------
