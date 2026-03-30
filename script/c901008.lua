@@ -1,19 +1,19 @@
 --Psychic Rose's Poison
 local s,id=GetID()
 function s.initial_effect(c)
-	--Activate (condition: "Psychic Rose" monster in MZONE or GY)
-local e0=Effect.CreateEffect(c)
-e0:SetType(EFFECT_TYPE_ACTIVATE)
-e0:SetCode(EVENT_FREE_CHAIN)
-c:RegisterEffect(e0)
+	--Activate (with condition)
+	local e0=Effect.CreateEffect(c)
+	e0:SetType(EFFECT_TYPE_ACTIVATE)
+	e0:SetCode(EVENT_FREE_CHAIN)
+	e0:SetCondition(s.actcon)
+	c:RegisterEffect(e0)
 
---Allow activation the turn it was Set
-local e0a=Effect.CreateEffect(c)
-e0a:SetType(EFFECT_TYPE_SINGLE)
-e0a:SetCode(EFFECT_TRAP_ACT_IN_SET_TURN)
-e0a:SetProperty(EFFECT_FLAG_SET_AVAILABLE)
-e0a:SetCondition(s.actcon)
-c:RegisterEffect(e0a)
+	--Allow activation the turn it is Set
+	local e0a=Effect.CreateEffect(c)
+	e0a:SetType(EFFECT_TYPE_SINGLE)
+	e0a:SetCode(EFFECT_TRAP_ACT_IN_SET_TURN)
+	e0a:SetProperty(EFFECT_FLAG_SET_AVAILABLE)
+	c:RegisterEffect(e0a)
 
 	--Unaffected by opponent hand/GY effects
 	local e1=Effect.CreateEffect(c)
@@ -40,7 +40,7 @@ c:RegisterEffect(e0a)
 	e2:SetOperation(s.negop)
 	c:RegisterEffect(e2)
 
-	--Synchro Summon (LEGAL)
+	--Synchro Summon (legal engine method)
 	local e3=Effect.CreateEffect(c)
 	e3:SetDescription(aux.Stringid(id,1))
 	e3:SetCategory(CATEGORY_SPECIAL_SUMMON)
@@ -55,33 +55,39 @@ c:RegisterEffect(e0a)
 	c:RegisterEffect(e3)
 end
 
---"Psychic Rose" check
+--------------------------------------------------
+-- "Psychic Rose" check (Set Code: 0x1A0A)
+--------------------------------------------------
 function s.rosefilter(c)
-	return c:IsFaceup() and c:IsSetCard(0x1A0A)
+	return c:IsSetCard(0x1A0A)
 end
 
---Activation condition
+--------------------------------------------------
+-- Activation condition
+--------------------------------------------------
 function s.actcon(e,tp,eg,ep,ev,re,r,rp)
 	return Duel.IsExistingMatchingCard(s.rosefilter,tp,LOCATION_MZONE+LOCATION_GRAVE,0,1,nil)
 end
 
---Immunity target
+--------------------------------------------------
+-- Immunity effect
+--------------------------------------------------
 function s.immtg(e,c)
 	return c:IsFaceup() and (c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT)) and c:IsType(TYPE_SYNCHRO)
 end
 
---Immune to opponent hand/GY effects
 function s.immval(e,re)
 	return re:GetOwnerPlayer()~=e:GetHandlerPlayer()
 		and (re:GetActivateLocation()==LOCATION_HAND or re:GetActivateLocation()==LOCATION_GRAVE)
 end
 
---Negate condition
+--------------------------------------------------
+-- Negate effect
+--------------------------------------------------
 function s.negcon(e,tp,eg,ep,ev,re,r,rp)
 	return Duel.IsMainPhase()
 end
 
---Tribute cost
 function s.cfilter(c)
 	return c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT)
 end
@@ -92,12 +98,11 @@ function s.negcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.Release(g,REASON_COST)
 end
 
---Target negate
 function s.negtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	if chkc then return chkc:IsOnField() and chkc:IsFaceup() and chkc:IsControler(1-tp) end
-	if chk==0 then return Duel.IsExistingTarget(aux.FaceupFilter(Card.IsNegatable),tp,0,LOCATION_ONFIELD,1,nil) end
+	if chk==0 then return Duel.IsExistingTarget(Card.IsNegatable,tp,0,LOCATION_ONFIELD,1,nil) end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_FACEUP)
-	local g=Duel.SelectTarget(tp,aux.FaceupFilter(Card.IsNegatable),tp,0,LOCATION_ONFIELD,1,1,nil)
+	local g=Duel.SelectTarget(tp,Card.IsNegatable,tp,0,LOCATION_ONFIELD,1,1,nil)
 end
 
 function s.negop(e,tp,eg,ep,ev,re,r,rp)
@@ -115,53 +120,38 @@ function s.negop(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 
---Synchro condition
+--------------------------------------------------
+-- Synchro Summon (ENGINE METHOD)
+--------------------------------------------------
 function s.syncon(e,tp,eg,ep,ev,re,r,rp)
 	return Duel.IsMainPhase()
 end
 
---Banish as cost
 function s.syncost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return e:GetHandler():IsAbleToRemoveAsCost() end
 	Duel.Remove(e:GetHandler(),POS_FACEUP,REASON_COST)
 end
 
---Synchro Target
-function s.synfilter(c,e,tp)
+function s.synfilter(c)
 	return c:IsType(TYPE_SYNCHRO)
 		and (c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT))
 		and c:IsSynchroSummonable()
 end
 
-function s.matfilter(c)
-	return c:IsFaceup() and c:IsAbleToGrave() and c:IsMonster()
-end
-
 function s.syntg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then
-		return Duel.IsExistingMatchingCard(s.synfilter,tp,LOCATION_EXTRA,0,1,nil,e,tp)
-			and Duel.IsExistingMatchingCard(s.matfilter,tp,LOCATION_MZONE,0,1,nil)
+		return Duel.IsExistingMatchingCard(s.synfilter,tp,LOCATION_EXTRA,0,1,nil)
 	end
 	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_EXTRA)
 end
 
---Synchro Operation (LEGAL)
 function s.synop(e,tp,eg,ep,ev,re,r,rp)
-	if not Duel.IsExistingMatchingCard(s.synfilter,tp,LOCATION_EXTRA,0,1,nil,e,tp) then return end
-
-	local g=Duel.GetMatchingGroup(s.matfilter,tp,LOCATION_MZONE,0,nil)
-	if #g==0 then return end
-
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
-	local tg=g:Select(tp,1,99,nil)
-
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
-	local sg=Duel.GetMatchingGroup(s.synfilter,tp,LOCATION_EXTRA,0,nil,e,tp)
-	local sc=sg:Select(tp,1,1,nil):GetFirst()
+	local sg=Duel.GetMatchingGroup(s.synfilter,tp,LOCATION_EXTRA,0,nil)
+	if #sg==0 then return end
 
+	local sc=sg:Select(tp,1,1,nil):GetFirst()
 	if sc then
-		Duel.SendtoGrave(tg,REASON_EFFECT+REASON_MATERIAL+REASON_SYNCHRO)
-		Duel.BreakEffect()
-		Duel.SynchroSummon(tp,sc,tg)
+		Duel.SynchroSummon(tp,sc,nil)
 	end
 end
