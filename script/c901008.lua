@@ -5,7 +5,6 @@ function s.initial_effect(c)
 local e0=Effect.CreateEffect(c)
 e0:SetType(EFFECT_TYPE_ACTIVATE)
 e0:SetCode(EVENT_FREE_CHAIN)
-e0:SetCondition(s.actcon)
 c:RegisterEffect(e0)
 
 --Allow activation the turn it was Set
