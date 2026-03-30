@@ -51,7 +51,7 @@ function s.applylock(e,tp)
     Duel.RegisterEffect(e1,tp)
             -- Client hint (THIS is what shows under the username)
     aux.RegisterClientHint(e:GetHandler(),nil,tp,1,0,
-        aux.Stringid(id,0),
+        aux.Stringid(id,3),
         nil)
 end
 
