@@ -73,7 +73,7 @@ end
 --========================
 -- SPECIAL SUMMON CONDITION
 --========================
-function s.cfilter(c)
+function s.csfilter(c)
     return not (c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT))
 end
 
@@ -82,7 +82,7 @@ function s.spcon(e,c)
     local tp=c:GetControler()
     local g=Duel.GetFieldGroup(tp,LOCATION_MZONE,0)
     return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
-        and (#g==0 or not g:IsExists(s.cfilter,1,nil))
+        and (#g==0 or not g:IsExists(s.csfilter,1,nil))
 end
 
 --========================
