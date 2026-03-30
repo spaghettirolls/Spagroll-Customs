@@ -42,16 +42,6 @@ function s.initial_effect(c)
     e3:SetTarget(s.thtg)
     e3:SetOperation(s.thop)
     c:RegisterEffect(e3)
-
-    --Summon restriction
-    local e4=Effect.CreateEffect(c)
-    e4:SetType(EFFECT_TYPE_FIELD)
-    e4:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
-    e4:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
-    e4:SetTargetRange(1,0)
-    e4:SetTarget(s.splimit)
-    e4:SetLabelObject(e1)
-    c:RegisterEffect(e4)
 end
 
 --Cost: discard itself
