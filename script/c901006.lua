@@ -7,7 +7,6 @@ function s.initial_effect(c)
     e1:SetType(EFFECT_TYPE_ACTIVATE)
     e1:SetCode(EVENT_FREE_CHAIN)
     e1:SetCountLimit(1,id)
-    e1:SetCondition(s.actcon)
     e1:SetTarget(s.target)
     e1:SetOperation(s.activate)
     c:RegisterEffect(e1)
@@ -18,7 +17,6 @@ function s.initial_effect(c)
     e2:SetType(EFFECT_TYPE_IGNITION)
     e2:SetRange(LOCATION_GRAVE)
     e2:SetCountLimit(1,id+100)
-    e2:SetCondition(s.actcon)
     e2:SetCost(s.gycost)
     e2:SetTarget(s.gytg)
     e2:SetOperation(s.gyop)
@@ -69,7 +67,6 @@ function s.activate(e,tp,eg,ep,ev,re,r,rp)
             local g=Duel.SelectMatchingCard(tp,s.spfilter,tp,LOCATION_HAND+LOCATION_REMOVED,0,1,1,nil,e,tp)
             if #g>0 then
                 Duel.SpecialSummon(g,0,tp,tp,false,false,POS_FACEUP)
-                    s.applylock(e,tp)
             end
         end
     end
@@ -101,31 +98,5 @@ function s.gyop(e,tp,eg,ep,ev,re,r,rp)
         Duel.ShuffleHand(tp)
         Duel.BreakEffect()
         Duel.DiscardHand(tp,aux.TRUE,1,1,REASON_EFFECT+REASON_DISCARD)
-        s.applylock(e,tp)
-end
---========================
--- KONAMI SUMMON LOCK CORE
---========================
-Duel.AddCustomActivityCounter(id,ACTIVITY_SPSUMMON,function(c)
-    return c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT)
-end)
-
-function s.actcon(e,tp,eg,ep,ev,re,r,rp)
-    return Duel.GetCustomActivityCount(id,tp,ACTIVITY_SPSUMMON)==0
-end
-
-function s.applylock(e,tp)
-    local e1=Effect.CreateEffect(e:GetHandler())
-    e1:SetType(EFFECT_TYPE_FIELD)
-    e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_OATH)
-    e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
-    e1:SetTargetRange(1,0)
-    e1:SetTarget(function(e,c) return not (c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT)) end)
-    e1:SetReset(RESET_PHASE+PHASE_END)
-    Duel.RegisterEffect(e1,tp)
-    -- Client hint (THIS is what shows under the username)
-    aux.RegisterClientHint(e:GetHandler(),nil,tp,1,0,
-        aux.Stringid(id,0),
-        nil)
-end
+    end
 end
