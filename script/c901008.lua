@@ -2,11 +2,19 @@
 local s,id=GetID()
 function s.initial_effect(c)
 	--Activate (condition: "Psychic Rose" monster in MZONE or GY)
-	local e0=Effect.CreateEffect(c)
-	e0:SetType(EFFECT_TYPE_ACTIVATE)
-	e0:SetCode(EVENT_FREE_CHAIN)
-	e0:SetCondition(s.actcon)
-	c:RegisterEffect(e0)
+local e0=Effect.CreateEffect(c)
+e0:SetType(EFFECT_TYPE_ACTIVATE)
+e0:SetCode(EVENT_FREE_CHAIN)
+e0:SetCondition(s.actcon)
+c:RegisterEffect(e0)
+
+--Allow activation the turn it was Set
+local e0a=Effect.CreateEffect(c)
+e0a:SetType(EFFECT_TYPE_SINGLE)
+e0a:SetCode(EFFECT_TRAP_ACT_IN_SET_TURN)
+e0a:SetProperty(EFFECT_FLAG_SET_AVAILABLE)
+e0a:SetCondition(s.actcon)
+c:RegisterEffect(e0a)
 
 	--Unaffected by opponent hand/GY effects
 	local e1=Effect.CreateEffect(c)
