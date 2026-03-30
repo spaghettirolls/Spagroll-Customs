@@ -9,12 +9,12 @@ function s.initial_effect(c)
     e0:SetCode(EFFECT_ADD_RACE)
     e0:SetValue(RACE_PSYCHIC)
     c:RegisterEffect(e0)
-   local e1=Effect.CreateEffect(c)
+    local e1=Effect.CreateEffect(c)
     e1:SetType(EFFECT_TYPE_FIELD)
     e1:SetCode(EFFECT_SPSUMMON_PROC)
     e1:SetProperty(EFFECT_FLAG_UNCOPYABLE)
     e1:SetRange(LOCATION_HAND)
-    e1:SetCountLimit(1,id,EFFECT_COUNT_CODE_OATH)
+    e1:SetCountLimit(1,{id,0})
     e1:SetCondition(s.spcon)
     c:RegisterEffect(e1)
     --On summon: search
@@ -31,14 +31,19 @@ function s.initial_effect(c)
     local e2x=e2:Clone()
     e2x:SetCode(EVENT_SPSUMMON_SUCCESS)
     c:RegisterEffect(e2x)
-    local e3=Effect.CreateEffect(c)
-    e3:SetType(EFFECT_TYPE_SINGLE)
-    e3:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
-    e3:SetCode(EFFECT_SYNCHRO_MAT_FROM_HAND)
-    e3:SetRange(LOCATION_GRAVE)
-    e3:SetCost(Cost.SelfBanish)
-    e3:SetValue(s.synval)
-    c:RegisterEffect(e3)
+	local e3=Effect.CreateEffect(c)
+	e3:SetDescription(aux.Stringid(id,0))
+	e3:SetCategory(CATEGORY_SPECIAL_SUMMON)
+	e3:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
+	e3:SetCode(EVENT_DESTROYED)
+	e3:SetRange(LOCATION_GRAVE)
+	e3:SetProperty(EFFECT_FLAG_DELAY)
+    e3:SetCountLimit(1,{id,2})
+	e3:SetCondition(s.spcon2)
+	e3:SetCost(aux.bfgcost) -- banish this card from GY as cost
+	e3:SetTarget(s.sptg)
+	e3:SetOperation(s.spop)
+	c:RegisterEffect(e3)
 end
 
 --========================
@@ -66,7 +71,7 @@ end
 --========================
 -- SPECIAL SUMMON CONDITION
 --========================
-function s.csfilter(c)
+function s.cfilter(c)
     return not (c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT))
 end
 
@@ -75,7 +80,7 @@ function s.spcon(e,c)
     local tp=c:GetControler()
     local g=Duel.GetFieldGroup(tp,LOCATION_MZONE,0)
     return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
-        and (#g==0 or not g:IsExists(s.csfilter,1,nil))
+        and (#g==0 or not g:IsExists(s.cfilter,1,nil))
 end
 
 --========================
@@ -102,6 +107,38 @@ function s.thop(e,tp,eg,ep,ev,re,r,rp)
     end
     s.applylock(e,tp)
 end
-function s.synval(e,mc,sc) --this effect, this card and the monster to be summoned
-    return sc:IsRace(RACE_PLANT) or (sc:IsRace(RACE_PSYCHIC))
+
+-- Check if a Plant or Psychic monster you control was destroyed by battle or effect
+function s.cfilter(c,tp)
+	return c:IsPreviousControler(tp)
+		and c:IsPreviousLocation(LOCATION_MZONE)
+		and (c:IsRace(RACE_PLANT) or c:IsRace(RACE_PSYCHIC))
+end
+
+function s.spcon2(e,tp,eg,ep,ev,re,r,rp)
+	return eg:IsExists(s.cfilter,1,nil,tp)
+end
+
+-- Target
+function s.spfilter(c,e,tp)
+	return c:IsRace(RACE_PLANT+RACE_PSYCHIC)
+		and c:IsCanBeSpecialSummoned(e,0,tp,false,false)
+end
+
+function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then
+		return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
+			and Duel.IsExistingMatchingCard(s.spfilter,tp,LOCATION_GRAVE,0,1,nil,e,tp)
+	end
+	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_GRAVE)
+end
+
+-- Operation
+function s.spop(e,tp,eg,ep,ev,re,r,rp)
+	if Duel.GetLocationCount(tp,LOCATION_MZONE)<=0 then return end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
+	local g=Duel.SelectMatchingCard(tp,s.spfilter,tp,LOCATION_GRAVE,0,1,1,nil,e,tp)
+	if #g>0 then
+		Duel.SpecialSummon(g,0,tp,tp,false,false,POS_FACEUP)
+	end
 end
