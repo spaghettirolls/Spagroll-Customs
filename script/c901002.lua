@@ -133,4 +133,8 @@ function s.applylock(e,tp)
 	end)
 	e1:SetReset(RESET_PHASE+PHASE_END)
 	Duel.RegisterEffect(e1,tp)
+	        -- Client hint (THIS is what shows under the username)
+    aux.RegisterClientHint(e:GetHandler(),nil,tp,1,0,
+        aux.Stringid(id,0),
+        nil)
 end

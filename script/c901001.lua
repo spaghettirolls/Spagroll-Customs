@@ -32,7 +32,6 @@ function s.initial_effect(c)
     e2x:SetCode(EVENT_SPSUMMON_SUCCESS)
     c:RegisterEffect(e2x)
 	local e3=Effect.CreateEffect(c)
-	e3:SetDescription(aux.Stringid(id,0))
 	e3:SetCategory(CATEGORY_SPECIAL_SUMMON)
 	e3:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
 	e3:SetCode(EVENT_DESTROYED)
@@ -66,8 +65,11 @@ function s.applylock(e,tp)
     e1:SetTarget(function(e,c) return not (c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT)) end)
     e1:SetReset(RESET_PHASE+PHASE_END)
     Duel.RegisterEffect(e1,tp)
+    -- Client hint (THIS is what shows under the username)
+    aux.RegisterClientHint(e:GetHandler(),nil,tp,1,0,
+        aux.Stringid(id,0),
+        nil)
 end
-
 --========================
 -- SPECIAL SUMMON CONDITION
 --========================

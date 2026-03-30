@@ -78,6 +78,10 @@ function s.applylock(e,tp)
     e1:SetTarget(function(e,c) return not (c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT)) end)
     e1:SetReset(RESET_PHASE+PHASE_END)
     Duel.RegisterEffect(e1,tp)
+        -- Client hint (THIS is what shows under the username)
+    aux.RegisterClientHint(e:GetHandler(),nil,tp,1,0,
+        aux.Stringid(id,0),
+        nil)
 end
 
 --========================
