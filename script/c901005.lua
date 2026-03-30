@@ -92,9 +92,7 @@ function s.negop(e,tp,eg,ep,ev,re,r,rp)
         e5:SetCode(EFFECT_CANNOT_BE_MATERIAL)
         e5:SetValue(1)
         tc:RegisterEffect(e5)
-
-        --Summon restriction (lock after effect)
-        s.splimit(tp)
+        s.applylock(e,tp)
     end
 end
 
@@ -111,17 +109,29 @@ end
 function s.wipeop(e,tp,eg,ep,ev,re,r,rp)
     local g=Duel.GetFieldGroup(tp,LOCATION_ONFIELD,LOCATION_ONFIELD)
     Duel.Destroy(g,REASON_EFFECT)
-    s.splimit(tp)
+        s.applylock(e,tp)
 end
 
---Summon restriction effect
-function s.splimit(tp)
-    local e1=Effect.CreateEffect(nil)
+--------------------------------------------------
+-- Custom Lock Implementation (your version)
+--------------------------------------------------
+function s.actcon(e,tp,eg,ep,ev,re,r,rp)
+    return Duel.GetCustomActivityCount(id,tp,ACTIVITY_SPSUMMON)==0
+end
+
+function s.applylock(e,tp)
+    local e1=Effect.CreateEffect(e:GetHandler())
     e1:SetType(EFFECT_TYPE_FIELD)
-    e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
     e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_OATH)
+    e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
     e1:SetTargetRange(1,0)
-    e1:SetTarget(function(e,c) return not c:IsRace(RACE_PLANT|RACE_PSYCHIC) end)
+    e1:SetTarget(function(e,c)
+        return not (c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT))
+    end)
     e1:SetReset(RESET_PHASE+PHASE_END)
     Duel.RegisterEffect(e1,tp)
+            -- Client hint (THIS is what shows under the username)
+    aux.RegisterClientHint(e:GetHandler(),nil,tp,1,0,
+        aux.Stringid(id,0),
+        nil)
 end
