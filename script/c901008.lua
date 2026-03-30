@@ -73,11 +73,13 @@ end
 -- Immunity effect
 --------------------------------------------------
 function s.immtg(e,c)
-	return c:IsFaceup() and (c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT)) and c:IsType(TYPE_SYNCHRO)
+	return c:IsFaceup()
+		and c:IsType(TYPE_SYNCHRO)
+		and (c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT))
 end
-
 function s.immval(e,re)
 	return re:GetOwnerPlayer()~=e:GetHandlerPlayer()
+		and re:IsActivated()
 		and (re:GetActivateLocation()==LOCATION_HAND or re:GetActivateLocation()==LOCATION_GRAVE)
 end
 
