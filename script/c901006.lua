@@ -25,7 +25,7 @@ end
 
 --Filters
 function s.psyrose_filter(c)
-    return c:IsFaceup() and c:IsSetCard(0x1A0A)
+    return c:IsFaceup() and c:IsSetCard(0x1A0A) and not c:IsType(TYPE_TUNER)
 end
 
 function s.spfilter(c,e,tp)
