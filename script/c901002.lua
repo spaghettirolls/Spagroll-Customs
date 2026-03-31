@@ -20,7 +20,6 @@ function s.initial_effect(c)
 	e1:SetCountLimit(1,id,EFFECT_COUNT_CODE_OATH)
 	e1:SetCondition(s.spcon)
 	c:RegisterEffect(e1)
-
 	--Tribute effect
 	local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,1))
@@ -28,24 +27,38 @@ function s.initial_effect(c)
 	e2:SetType(EFFECT_TYPE_IGNITION)
 	e2:SetRange(LOCATION_MZONE)
 	e2:SetCountLimit(1,id+1)
-	e2:SetCondition(s.actcon)
-	e2:SetCost(s.tgcost)
+	e2:SetCost(aux.AND(s.tgcost,s.copycost))
 	e2:SetTarget(s.tgtg)
 	e2:SetOperation(s.tgop)
 	c:RegisterEffect(e2)
-
 	--Graveyard replacement effect
 	local e3=Effect.CreateEffect(c)
 	e3:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
 	e3:SetCode(EFFECT_DESTROY_REPLACE)
 	e3:SetRange(LOCATION_GRAVE)
 	e3:SetCountLimit(1,id+2)
+	e3:SetCost(s.copycost)
 	e3:SetTarget(s.reptg)
 	e3:SetValue(s.repval)
 	e3:SetOperation(s.repop)
 	c:RegisterEffect(e3)
+    Duel.AddCustomActivityCounter(id,ACTIVITY_SPSUMMON,s.counterfilter)
 end
-
+function s.counterfilter(c)
+    return c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT)
+end
+function s.copycost(e,tp,eg,ep,ev,re,r,rp,chk)
+    if chk==0 then return Duel.GetCustomActivityCount(id,tp,ACTIVITY_SPSUMMON)==0 end
+    local e1=Effect.CreateEffect(e:GetHandler())
+    e1:SetType(EFFECT_TYPE_FIELD)
+    e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
+    e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_CLIENT_HINT)
+    e1:SetTargetRange(1,0)
+    e1:SetTarget(function(e,c) return not (c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT)) end)
+    e1:SetDescription(aux.Stringid(id,0))
+    e1:SetReset(RESET_PHASE+PHASE_END)
+    Duel.RegisterEffect(e1,tp)
+end
 --------------------------------------------------
 -- Hand Special Summon
 --------------------------------------------------
@@ -89,53 +102,34 @@ function s.tgop(e,tp,eg,ep,ev,re,r,rp)
 	local g=Duel.SelectMatchingCard(tp,s.spfilter2,tp,LOCATION_HAND+LOCATION_DECK+LOCATION_GRAVE,0,1,math.min(2,ft),nil,e,tp)
 	if #g>0 then
 		Duel.SpecialSummon(g,0,tp,tp,false,false,POS_FACEUP)
-		s.applylock(e,tp)
 	end
 end
 
---------------------------------------------------
--- Destroy Replacement (GY effect)
---------------------------------------------------
-function s.repfilter(c)
-	return c:IsFaceup() and (c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT))
+function s.repfilter(c,tp)
+	return c:IsFaceup() and (c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT)) and c:IsLocation(LOCATION_MZONE)
+		and c:IsControler(tp) and c:IsReason(REASON_EFFECT|REASON_BATTLE) and not c:IsReason(REASON_REPLACE)
 end
-
 function s.reptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()
-	if chk==0 then return c:IsAbleToRemove() end
-	return Duel.IsExistingMatchingCard(s.repfilter,tp,LOCATION_MZONE,0,1,nil)
+	if Duel.GetCustomActivityCount(id,tp,ACTIVITY_SPSUMMON)>0 then return false end
+	if chk==0 then return c:IsAbleToRemove() and eg:IsExists(s.repfilter,1,nil,tp) end
+    if Duel.SelectEffectYesNo(tp,c,96) then
+        local e1=Effect.CreateEffect(c)
+        e1:SetType(EFFECT_TYPE_FIELD)
+        e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
+        e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_CLIENT_HINT)
+        e1:SetTargetRange(1,0)
+        e1:SetTarget(function(e,c) return not (c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT)) end)
+        e1:SetDescription(aux.Stringid(id,0))
+        e1:SetReset(RESET_PHASE+PHASE_END)
+        Duel.RegisterEffect(e1,tp)
+        return true
+    else return false
 end
-
+end
 function s.repval(e,c)
-	return c:IsControler(e:GetHandlerPlayer()) and c:IsFaceup()
-		and (c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT))
+	return s.repfilter(c,e:GetHandlerPlayer())
 end
-
 function s.repop(e,tp,eg,ep,ev,re,r,rp)
-	Duel.Remove(e:GetHandler(),POS_FACEUP,REASON_EFFECT)
-	s.applylock(e,tp)
-end
-
---------------------------------------------------
--- Custom Lock Implementation (your version)
---------------------------------------------------
-function s.actcon(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.GetCustomActivityCount(id,tp,ACTIVITY_SPSUMMON)==0
-end
-
-function s.applylock(e,tp)
-	local e1=Effect.CreateEffect(e:GetHandler())
-	e1:SetType(EFFECT_TYPE_FIELD)
-	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_OATH)
-	e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
-	e1:SetTargetRange(1,0)
-	e1:SetTarget(function(e,c)
-		return not (c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT))
-	end)
-	e1:SetReset(RESET_PHASE+PHASE_END)
-	Duel.RegisterEffect(e1,tp)
-	        -- Client hint (THIS is what shows under the username)
-    aux.RegisterClientHint(e:GetHandler(),nil,tp,1,0,
-        aux.Stringid(id,0),
-        nil)
+	Duel.Remove(e:GetHandler(),POS_FACEUP,REASON_EFFECT|REASON_REPLACE)
 end

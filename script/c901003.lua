@@ -15,6 +15,7 @@ function s.initial_effect(c)
     e2:SetType(EFFECT_TYPE_IGNITION)
     e2:SetRange(LOCATION_MZONE)
     e2:SetCountLimit(1,{id,1})
+    e2:SetCost(s.copycost)
     e2:SetTarget(s.lvtg)
     e2:SetOperation(s.lvop)
     c:RegisterEffect(e2)
@@ -24,6 +25,7 @@ function s.initial_effect(c)
     e3:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_CARD_TARGET)
     e3:SetCode(EVENT_TO_GRAVE)
     e3:SetCountLimit(1,{id,2})
+    e3:SetCost(s.copycost)
     e3:SetCondition(s.descon)
     e3:SetTarget(s.destg)
     e3:SetOperation(s.desop)
@@ -36,33 +38,25 @@ function s.initial_effect(c)
     e5:SetCountLimit(1,{id,3})
     e5:SetValue(s.synval)
     c:RegisterEffect(e5)
+    Duel.AddCustomActivityCounter(id,ACTIVITY_SPSUMMON,s.counterfilter)
 end
-
---========================
--- KONAMI SUMMON LOCK CORE
---========================
-Duel.AddCustomActivityCounter(id,ACTIVITY_SPSUMMON,function(c)
+function s.counterfilter(c)
     return c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT)
-end)
-
-function s.actcon(e,tp,eg,ep,ev,re,r,rp)
-    return Duel.GetCustomActivityCount(id,tp,ACTIVITY_SPSUMMON)==0
 end
-
-function s.applylock(e,tp)
+function s.copycost(e,tp,eg,ep,ev,re,r,rp,chk)
+    if chk==0 then return Duel.GetCustomActivityCount(id,tp,ACTIVITY_SPSUMMON)==0 end
     local e1=Effect.CreateEffect(e:GetHandler())
     e1:SetType(EFFECT_TYPE_FIELD)
-    e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_OATH)
     e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
+    e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_CLIENT_HINT)
     e1:SetTargetRange(1,0)
     e1:SetTarget(function(e,c) return not (c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT)) end)
+    e1:SetDescription(aux.Stringid(id,0))
     e1:SetReset(RESET_PHASE+PHASE_END)
     Duel.RegisterEffect(e1,tp)
-            -- Client hint (THIS is what shows under the username)
-    aux.RegisterClientHint(e:GetHandler(),nil,tp,1,0,
-        aux.Stringid(id,3),
-        nil)
 end
+
+
 
 -- archetype filter
 function s.filter(c)
