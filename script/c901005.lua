@@ -20,6 +20,7 @@ function s.initial_effect(c)
     e1:SetCode(EVENT_SPSUMMON_SUCCESS)
     e1:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_CARD_TARGET)
     e1:SetCountLimit(1,id)
+    e1:SetCost(s.copycost)
     e1:SetCondition(s.negcon)
     e1:SetTarget(s.negtg)
     e1:SetOperation(s.negop)
@@ -33,10 +34,27 @@ function s.initial_effect(c)
     e2:SetCode(EVENT_SPSUMMON_SUCCESS)
     e2:SetRange(LOCATION_MZONE)
     e2:SetCountLimit(1,id+100)
+    e2:SetCost(s.copycost)
     e2:SetCondition(s.wipecon)
     e2:SetCost(s.wipecost)
     e2:SetOperation(s.wipeop)
     c:RegisterEffect(e2)
+  Duel.AddCustomActivityCounter(id,ACTIVITY_SPSUMMON,s.counterfilter)
+end
+function s.counterfilter(c)
+    return c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT)
+end
+function s.copycost(e,tp,eg,ep,ev,re,r,rp,chk)
+    if chk==0 then return Duel.GetCustomActivityCount(id,tp,ACTIVITY_SPSUMMON)==0 end
+    local e1=Effect.CreateEffect(e:GetHandler())
+    e1:SetType(EFFECT_TYPE_FIELD)
+    e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
+    e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_CLIENT_HINT)
+    e1:SetTargetRange(1,0)
+    e1:SetTarget(function(e,c) return not (c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT)) end)
+    e1:SetDescription(aux.Stringid(id,0))
+    e1:SetReset(RESET_PHASE+PHASE_END)
+    Duel.RegisterEffect(e1,tp)
 end
 
 --Non-Tuner filter (Plant or Psychic)
@@ -110,28 +128,4 @@ function s.wipeop(e,tp,eg,ep,ev,re,r,rp)
     local g=Duel.GetFieldGroup(tp,LOCATION_ONFIELD,LOCATION_ONFIELD)
     Duel.Destroy(g,REASON_EFFECT)
         s.applylock(e,tp)
-end
-
---------------------------------------------------
--- Custom Lock Implementation (your version)
---------------------------------------------------
-function s.actcon(e,tp,eg,ep,ev,re,r,rp)
-    return Duel.GetCustomActivityCount(id,tp,ACTIVITY_SPSUMMON)==0
-end
-
-function s.applylock(e,tp)
-    local e1=Effect.CreateEffect(e:GetHandler())
-    e1:SetType(EFFECT_TYPE_FIELD)
-    e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET+EFFECT_FLAG_OATH)
-    e1:SetCode(EFFECT_CANNOT_SPECIAL_SUMMON)
-    e1:SetTargetRange(1,0)
-    e1:SetTarget(function(e,c)
-        return not (c:IsRace(RACE_PSYCHIC) or c:IsRace(RACE_PLANT))
-    end)
-    e1:SetReset(RESET_PHASE+PHASE_END)
-    Duel.RegisterEffect(e1,tp)
-            -- Client hint (THIS is what shows under the username)
-    aux.RegisterClientHint(e:GetHandler(),nil,tp,1,0,
-        aux.Stringid(id,0),
-        nil)
 end
