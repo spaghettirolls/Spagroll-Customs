@@ -110,7 +110,6 @@ function s.negop(e,tp,eg,ep,ev,re,r,rp)
         e5:SetCode(EFFECT_CANNOT_BE_MATERIAL)
         e5:SetValue(1)
         tc:RegisterEffect(e5)
-        s.applylock(e,tp)
     end
 end
 
@@ -127,5 +126,4 @@ end
 function s.wipeop(e,tp,eg,ep,ev,re,r,rp)
     local g=Duel.GetFieldGroup(tp,LOCATION_ONFIELD,LOCATION_ONFIELD)
     Duel.Destroy(g,REASON_EFFECT)
-        s.applylock(e,tp)
 end

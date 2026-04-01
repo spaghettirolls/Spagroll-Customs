@@ -104,7 +104,6 @@ function s.lvop(e,tp,eg,ep,ev,re,r,rp)
         if #g>0 then
             Duel.SendtoHand(g,nil,REASON_EFFECT)
             Duel.ConfirmCards(1-tp,g)
-         s.applylock(e,tp)
         end
     end
 end
